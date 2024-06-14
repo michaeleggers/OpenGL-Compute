@@ -3,14 +3,12 @@ project(ComputeShader VERSION 1.0)
 
 ADD_SRC_HEADER_FILES()
 
-include_directories(
-	${CMAKE_CURRENT_SOURCE_DIR}/dependencies/
-	${CMAKE_CURRENT_SOURCE_DIR}/dependencies/glm
-)
-
 add_executable(ComputeShader
-	${SRC_FILES}
-	${HEADER_FILES}
+	main.cpp
+	platform.h
+	platform.cpp
+	r_shader.h
+	r_shader.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/dependencies/glad/src/gl.c
 	# ${CMAKE_CURRENT_SOURCE_DIR}/dependencies/glad/KHR/khrplatform.h
 	# ${CMAKE_CURRENT_SOURCE_DIR}/dependencies/glad/glad/glad.h
@@ -20,6 +18,7 @@ add_executable(ComputeShader
 target_include_directories(ComputeShader
     PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/dependencies
 	PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/dependencies/glad/include
+	${CMAKE_CURRENT_SOURCE_DIR}/dependencies/glm
 )
 
 target_link_libraries(ComputeShader

@@ -1,18 +1,44 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+#include <string>
+
 #include <glad/gl.h>
 
 #define GLFW_INCLUDE_NONE
 #include <GLFW/glfw3.h>
 
+
+#include "platform.h"
+#include "r_shader.h"
+
+// Renderer Globals
+GLFWwindow* g_glfwWindow;
+const GLubyte* g_glVendor;
+const GLubyte* g_glRenderer;
+
+
 void GLFW_ErrorCallback(int error, const char* description) {
 	fprintf(stderr, "GLFW ERROR (%d): %s\n", error, description);
 }
 
-GLFWwindow* g_glfwWindow;
+static void SetupDirectories(int argc, char** argv) {
+
+	std::string assets_dir = "../../assets";
+	std::string shaders_dir = "../../src/shaders";
+	if (argc > 1) {
+		assets_dir = argv[1];
+	}
+	if (argc > 2) {
+		shaders_dir = argv[2];
+	}
+
+	init_directories(assets_dir.c_str(), shaders_dir.c_str());
+}
 
 int main(int argc, char** argv) {
+
+	SetupDirectories(argc, argv);
 
 	if (!glfwInit()) {
 		printf("Could not init GLFW.\n");
@@ -20,7 +46,6 @@ int main(int argc, char** argv) {
 	}
 
 	glfwSetErrorCallback(GLFW_ErrorCallback);
-
 
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 6);
@@ -38,6 +63,14 @@ int main(int argc, char** argv) {
 		exit(-1);
 	}
 
+	g_glVendor = glGetString(GL_VENDOR);
+	g_glRenderer = glGetString(GL_RENDERER);
+	printf("VENDOR: %s, DEVICE: %s\n", (char*)g_glVendor, (char*)g_glRenderer);
+
+	// Load shaders
+
+	Shader shaders{};
+	shaders.Load("vertex_shader.glsl", "fragment_shader.glsl");
 
 	while (!glfwWindowShouldClose(g_glfwWindow)) {
 
