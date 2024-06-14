@@ -27,6 +27,8 @@ void GLFW_ErrorCallback(int error, const char* description);
 void GLFW_FramebufferCallback(GLFWwindow* window, int width, int height);
 void r_Init();
 void r_Shutdown();
+int  r_WindowWidth();
+int  r_WindowHeight();
 GLFWwindow* r_GetWindow();
 
 #endif

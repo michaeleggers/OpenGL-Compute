@@ -7,6 +7,8 @@
 #include "dependencies/glm/glm.hpp"
 #include "dependencies/glm/ext.hpp"
 
+#include <stdint.h>
+
 #include <string>
 
 #define MAX_BONES 96
@@ -30,8 +32,6 @@ public:
 	void SetShaderSettingBits(uint32_t bits);
 	void ResetShaderSettingBits(uint32_t bits);
 
-	static void InitGlobalBuffers();
-
 private:
 	bool CompileShader(const std::string& fileName, GLenum shaderType, GLuint& outShader);
 	bool IsCompiled(GLuint shader);
@@ -47,6 +47,7 @@ private:
 	GLuint m_ViewProjUBO;
 	GLuint m_SettingsUBO;
 	GLuint m_PaletteUBO;
+	uint32_t m_SettingsBits;
 };
 
 

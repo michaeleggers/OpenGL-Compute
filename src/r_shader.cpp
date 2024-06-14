@@ -20,9 +20,6 @@
 #define BIND_POINT_SETTINGS			  1
 static GLuint g_PaletteBindingPoint = 2;
 
-static GLuint   g_ViewProjUBO;
-static GLuint   g_SettingsUBO;
-static uint32_t g_SettingsBits;
 
 bool Shader::Load(const std::string& vertName, const std::string& fragName, uint32_t shaderFeatureBits)
 {
@@ -37,9 +34,23 @@ bool Shader::Load(const std::string& vertName, const std::string& fragName, uint
 	glAttachShader(m_ShaderProgram, m_FragmentShader);
 	glLinkProgram(m_ShaderProgram);
 
-	if (!IsValidProgram()) return false;
+	if (!IsValidProgram()) {
+		return false;
+	}
 
 	// Uniforms
+
+	glGenBuffers(1, &m_ViewProjUBO);
+	glBindBuffer(GL_UNIFORM_BUFFER, m_ViewProjUBO);
+	glBufferData(GL_UNIFORM_BUFFER, 2 * sizeof(glm::mat4), nullptr, GL_DYNAMIC_DRAW);
+	glBindBuffer(GL_UNIFORM_BUFFER, 0);
+
+	// render settings (such as wireframe)
+
+	glGenBuffers(1, &m_SettingsUBO);
+	glBindBuffer(GL_UNIFORM_BUFFER, m_SettingsUBO);
+	glBufferData(GL_UNIFORM_BUFFER, sizeof(uint32_t), nullptr, GL_DYNAMIC_DRAW);
+	glBindBuffer(GL_UNIFORM_BUFFER, 0);
 
 	printf("Check Uniforms for Shaders: %s, %s\n", vertName.c_str(), fragName.c_str());
 
@@ -55,7 +66,7 @@ bool Shader::Load(const std::string& vertName, const std::string& fragName, uint
 		uniformsFound = false;
 	}
 	glUniformBlockBinding(m_ShaderProgram, m_ViewProjUniformIndex, bindingPoint);
-	glBindBufferRange(GL_UNIFORM_BUFFER, bindingPoint, g_ViewProjUBO, 0, 2*sizeof(glm::mat4));
+	glBindBufferRange(GL_UNIFORM_BUFFER, bindingPoint, m_ViewProjUBO, 0, 2*sizeof(glm::mat4));
 	glBindBuffer(GL_UNIFORM_BUFFER, 0);
 
 	// Per frame settings
@@ -67,7 +78,7 @@ bool Shader::Load(const std::string& vertName, const std::string& fragName, uint
 		uniformsFound = false;
 	}
 	glUniformBlockBinding(m_ShaderProgram, m_SettingsUniformIndex, settingsBindingPoint);
-	glBindBufferRange(GL_UNIFORM_BUFFER, settingsBindingPoint, g_SettingsUBO, 0, sizeof(uint32_t));
+	glBindBufferRange(GL_UNIFORM_BUFFER, settingsBindingPoint, m_SettingsUBO, 0, sizeof(uint32_t));
 	glBindBuffer(GL_UNIFORM_BUFFER, 0);
 
 	if (!uniformsFound) {
@@ -101,7 +112,7 @@ GLuint Shader::Program() const
 
 void Shader::SetViewProjMatrices(glm::mat4 view, glm::mat4 proj)
 {	
-	glBindBuffer(GL_UNIFORM_BUFFER, g_ViewProjUBO);
+	glBindBuffer(GL_UNIFORM_BUFFER, m_ViewProjUBO);
 	glBufferSubData(GL_UNIFORM_BUFFER, 0, sizeof(glm::mat4), glm::value_ptr(view));
 	glBufferSubData(GL_UNIFORM_BUFFER, sizeof(glm::mat4), sizeof(glm::mat4), glm::value_ptr(proj));
 	glBindBuffer(GL_UNIFORM_BUFFER, 0);
@@ -128,36 +139,17 @@ void Shader::SetVec3(std::string uniformName, glm::vec3 vec3)
 
 void Shader::SetShaderSettingBits(uint32_t bits)
 {
-	g_SettingsBits |= bits;
-	glBindBuffer(GL_UNIFORM_BUFFER, g_SettingsUBO);
-	glBufferSubData(GL_UNIFORM_BUFFER, 0, sizeof(uint32_t), (void*)&g_SettingsBits);
+	m_SettingsBits |= bits;
+	glBindBuffer(GL_UNIFORM_BUFFER, m_SettingsUBO);
+	glBufferSubData(GL_UNIFORM_BUFFER, 0, sizeof(uint32_t), (void*)&m_SettingsBits);
 	glBindBuffer(GL_UNIFORM_BUFFER, 0);
 }
 
 void Shader::ResetShaderSettingBits(uint32_t bits)
 {
-	g_SettingsBits = (g_SettingsBits & (~bits));
-	glBindBuffer(GL_UNIFORM_BUFFER, g_SettingsUBO);
-	glBufferSubData(GL_UNIFORM_BUFFER, 0, sizeof(uint32_t), (void*)&g_SettingsBits);
-	glBindBuffer(GL_UNIFORM_BUFFER, 0);
-}
-
-void Shader::InitGlobalBuffers()
-{
-	printf("INITIALIZE GLOBAL SHADER BUFFERS...\n");
-
-	// view projection matrices
-	
-	glGenBuffers(1, &g_ViewProjUBO);
-	glBindBuffer(GL_UNIFORM_BUFFER, g_ViewProjUBO);
-	glBufferData(GL_UNIFORM_BUFFER, 2 * sizeof(glm::mat4), nullptr, GL_DYNAMIC_DRAW);
-	glBindBuffer(GL_UNIFORM_BUFFER, 0);
-
-	// render settings (such as wireframe)
-
-	glGenBuffers(1, &g_SettingsUBO);
-	glBindBuffer(GL_UNIFORM_BUFFER, g_SettingsUBO);
-	glBufferData(GL_UNIFORM_BUFFER, sizeof(uint32_t), nullptr, GL_DYNAMIC_DRAW);
+	m_SettingsBits = (m_SettingsBits & (~bits));
+	glBindBuffer(GL_UNIFORM_BUFFER, m_SettingsUBO);
+	glBufferSubData(GL_UNIFORM_BUFFER, 0, sizeof(uint32_t), (void*)&m_SettingsBits);
 	glBindBuffer(GL_UNIFORM_BUFFER, 0);
 }
 

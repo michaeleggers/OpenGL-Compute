@@ -76,6 +76,16 @@ void r_Shutdown()
 	printf("Renderer shut down.\n");
 }
 
+int r_WindowWidth()
+{
+	return g_RenderState.windowWidth;
+}
+
+int r_WindowHeight()
+{
+	return g_RenderState.windowHeight;
+}
+
 GLFWwindow* r_GetWindow()
 {
 	return g_RenderState.glfwWindow;

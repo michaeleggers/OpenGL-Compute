@@ -25,6 +25,6 @@ void main () {
     out_color = in_color;
 
     // gl_Position = positions[gl_VertexID];
-    gl_Position = vec4(in_position, 1.0f);
+    gl_Position = proj * view * vec4(in_position, 1.0f);
 
 }

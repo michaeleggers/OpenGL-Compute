@@ -8,6 +8,9 @@
 #define GLFW_INCLUDE_NONE
 #include <GLFW/glfw3.h>
 
+#define GLM_FORCE_RADIANS
+#include <glm/glm.hpp>
+#include <glm/ext.hpp>
 
 #include "platform.h"
 #include "r_main.h"
@@ -47,7 +50,10 @@ int main(int argc, char** argv) {
 	// Load shaders
 
 	Shader vertFragShaders{};
-	vertFragShaders.Load("vertex_shader.glsl", "fragment_shader.glsl");
+	if (!vertFragShaders.Load("vertex_shader.glsl", "fragment_shader.glsl")) {
+		printf("Not able to load standard shader.\n");
+		exit(-1);
+	}
 
 	// Create Buffers
 
@@ -63,32 +69,38 @@ int main(int argc, char** argv) {
 		{ glm::vec3(0.5f, -0.5f, 0.0f), glm::vec4(0.0f, 0.0f, 1.0f, 1.0f) }
 	};
 	glBufferSubData(GL_ARRAY_BUFFER, 0, 3 * sizeof(Vertex), vertexAttributes);
-	
+
 	// Vertex Layout
 
 	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (GLvoid*)0);
 	glEnableVertexAttribArray(0);
-	
+
 	glVertexAttribPointer(1, 4, GL_FLOAT, GL_FALSE, sizeof(Vertex), (GLvoid*)sizeof(glm::vec3));
 	glEnableVertexAttribArray(1);
 
 	// Unbind to not mess up the state
-	
+
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
 
+	// View Projection Data
+	ViewProjectionMatrices viewProjUniform{};
 
 	while (!glfwWindowShouldClose( r_GetWindow() )) {
 
 		glfwPollEvents();
 
+		viewProjUniform.view = glm::lookAt(glm::vec3(0.0f, 0.0f, 2.0f), glm::vec3(0.0f), glm::vec3(0.0f, 1.0f, 0.0f));
+		viewProjUniform.proj = glm::perspective(glm::radians(70.0f), (float)r_WindowWidth() / (float)r_WindowHeight(), 1.0f, 100.0f);
+
 		glClearColor(0.3f, 0.2f, 0.7f, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-		glBindVertexArray(g_vertexVAO);
-		glUseProgram(vertFragShaders.Program());
+		vertFragShaders.Activate();
+		vertFragShaders.SetViewProjMatrices(viewProjUniform.view, viewProjUniform.proj);
+		glBindVertexArray(g_vertexVAO);		
 		glDrawArrays(GL_TRIANGLES, 0, 3);
 
-		glfwSwapBuffers(r_GetWindow());
+		glfwSwapBuffers( r_GetWindow() );
 
 	}
 	
