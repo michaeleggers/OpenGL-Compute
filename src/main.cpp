@@ -13,10 +13,16 @@
 #include "r_shader.h"
 
 // Renderer Globals
-GLFWwindow* g_glfwWindow;
-const GLubyte* g_glVendor;
-const GLubyte* g_glRenderer;
+static GLFWwindow* g_glfwWindow;
+static const GLubyte* g_glVendor;
+static const GLubyte* g_glRenderer;
+static GLuint g_vertexVBO;
+static GLuint g_vertexVAO;
 
+struct ViewProjectionMatrices {
+	glm::mat4 view;
+	glm::mat4 proj;
+};
 
 void GLFW_ErrorCallback(int error, const char* description) {
 	fprintf(stderr, "GLFW ERROR (%d): %s\n", error, description);
@@ -50,6 +56,7 @@ int main(int argc, char** argv) {
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 6);
 	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+	glfwWindowHint(GLFW_DEPTH_BITS, 24);
 	g_glfwWindow = glfwCreateWindow(1024, 768, "OpenGL Compute Shaders", NULL, NULL);
 	if (!g_glfwWindow) {
 		printf("Could not create GLFW window.\n");
@@ -69,8 +76,32 @@ int main(int argc, char** argv) {
 
 	// Load shaders
 
-	Shader shaders{};
-	shaders.Load("vertex_shader.glsl", "fragment_shader.glsl");
+	Shader vertFragShaders{};
+	vertFragShaders.Load("vertex_shader.glsl", "fragment_shader.glsl");
+
+	// Create Buffers
+
+	glGenVertexArrays(1, &g_vertexVAO);
+	glBindVertexArray(g_vertexVAO);
+	glBindVertexArray(0);
+
+	glGenBuffers(1, &g_vertexVBO);
+	glBindBuffer(GL_ARRAY_BUFFER, g_vertexVBO);
+	glBufferData(GL_ARRAY_BUFFER, 1024 * 1024 * 1024, NULL, GL_STATIC_DRAW);
+	static const glm::vec3 vertexPositions[] = {
+		glm::vec3(-0.5f, -0.5f, 0.0f),
+		glm::vec3(0.0f, 0.5f, 0.0f),
+		glm::vec3(0.5f, -0.5f, 0.0f)
+	};
+	glBufferSubData(GL_ARRAY_BUFFER, 0, 3 * sizeof(glm::vec3), vertexPositions);
+	glBindBuffer(GL_ARRAY_BUFFER, 0);
+
+	// Global Render Settings
+
+	glEnable(GL_DEPTH_TEST);
+	glDepthFunc(GL_LESS);
+	glDisable(GL_CULL_FACE);
+	glFrontFace(GL_CW);
 
 	while (!glfwWindowShouldClose(g_glfwWindow)) {
 
@@ -78,6 +109,10 @@ int main(int argc, char** argv) {
 
 		glClearColor(0.3f, 0.2f, 0.7f, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+		glBindVertexArray(g_vertexVAO);
+		glUseProgram(vertFragShaders.Program());
+		glDrawArrays(GL_TRIANGLES, 0, 3);
 
 		glfwSwapBuffers(g_glfwWindow);
 

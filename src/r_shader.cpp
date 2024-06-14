@@ -4,11 +4,15 @@
 
 #include <stdio.h>
 
+#include <string>
+#include <vector>
+
 #define GLM_FORCE_RADIANS
 #include <glm/glm.hpp>
 #include <glm/ext.hpp>
 
 #include "platform.h"
+
 
 // GLOBAL SHADER BUFFERS (USED BY ALL SHADERS)
 
@@ -37,13 +41,18 @@ bool Shader::Load(const std::string& vertName, const std::string& fragName, uint
 
 	// Uniforms
 
+	printf("Check Uniforms for Shaders: %s, %s\n", vertName.c_str(), fragName.c_str());
+
+	bool uniformsFound = true;
+	std::vector<std::string> uniformProblems{};
+
 	// Per frame matrices
 	//glBindBuffer(GL_UNIFORM_BUFFER, g_ViewProjUBO);
 	GLuint bindingPoint = BIND_POINT_VIEW_PROJECTION;
 	m_ViewProjUniformIndex = glGetUniformBlockIndex(m_ShaderProgram, "ViewProjMatrices");
-	if (m_ViewProjUniformIndex == GL_INVALID_INDEX) {
-		printf("SHADER-WARNING: Not able to get index for UBO in shader program.\nShaders:\n %s\n %s\n", vertName.c_str(), fragName.c_str());
-		// TODO: What to do in this case???
+	if (m_ViewProjUniformIndex == GL_INVALID_INDEX) {		
+		uniformProblems.push_back({ "Not able to find uniform location for 'ViewProjMatrices'" });
+		uniformsFound = false;
 	}
 	glUniformBlockBinding(m_ShaderProgram, m_ViewProjUniformIndex, bindingPoint);
 	glBindBufferRange(GL_UNIFORM_BUFFER, bindingPoint, g_ViewProjUBO, 0, 2*sizeof(glm::mat4));
@@ -54,12 +63,21 @@ bool Shader::Load(const std::string& vertName, const std::string& fragName, uint
 	GLuint settingsBindingPoint = BIND_POINT_SETTINGS;
 	m_SettingsUniformIndex = glGetUniformBlockIndex(m_ShaderProgram, "Settings");
 	if (m_SettingsUniformIndex == GL_INVALID_INDEX) {
-		printf("SHADER-WARNING: Not able to get index for UBO in shader program.\nShaders:\n %s\n %s\n", vertName.c_str(), fragName.c_str());		
-		// TODO: What to do in this case???
+		uniformProblems.push_back({ "Not able to find uniform location for 'Setting'" });
+		uniformsFound = false;
 	}
 	glUniformBlockBinding(m_ShaderProgram, m_SettingsUniformIndex, settingsBindingPoint);
 	glBindBufferRange(GL_UNIFORM_BUFFER, settingsBindingPoint, g_SettingsUBO, 0, sizeof(uint32_t));
 	glBindBuffer(GL_UNIFORM_BUFFER, 0);
+
+	if (!uniformsFound) {
+		for (std::string& uniformMsg : uniformProblems) {
+			printf("%s\n", uniformMsg.c_str());
+		}
+	}
+	else {
+		printf("All uniforms found\n");
+	}
 
 	return true;
 }
