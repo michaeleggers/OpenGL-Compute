@@ -9,6 +9,8 @@ add_executable(ComputeShader
 	platform.cpp
 	r_shader.h
 	r_shader.cpp
+	r_main.cpp
+	r_main.h
 	${CMAKE_CURRENT_SOURCE_DIR}/dependencies/glad/src/gl.c
 	# ${CMAKE_CURRENT_SOURCE_DIR}/dependencies/glad/KHR/khrplatform.h
 	# ${CMAKE_CURRENT_SOURCE_DIR}/dependencies/glad/glad/glad.h

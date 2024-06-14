@@ -10,23 +10,19 @@
 
 
 #include "platform.h"
+#include "r_main.h"
 #include "r_shader.h"
-
-// Renderer Globals
-static GLFWwindow* g_glfwWindow;
-static const GLubyte* g_glVendor;
-static const GLubyte* g_glRenderer;
-static GLuint g_vertexVBO;
-static GLuint g_vertexVAO;
 
 struct ViewProjectionMatrices {
 	glm::mat4 view;
 	glm::mat4 proj;
 };
 
-void GLFW_ErrorCallback(int error, const char* description) {
-	fprintf(stderr, "GLFW ERROR (%d): %s\n", error, description);
-}
+
+// Render Globals
+
+static GLuint g_vertexVBO;
+static GLuint g_vertexVAO;
 
 static void SetupDirectories(int argc, char** argv) {
 
@@ -46,33 +42,7 @@ int main(int argc, char** argv) {
 
 	SetupDirectories(argc, argv);
 
-	if (!glfwInit()) {
-		printf("Could not init GLFW.\n");
-		exit(-1);
-	}
-
-	glfwSetErrorCallback(GLFW_ErrorCallback);
-
-	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
-	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 6);
-	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
-	glfwWindowHint(GLFW_DEPTH_BITS, 24);
-	g_glfwWindow = glfwCreateWindow(1024, 768, "OpenGL Compute Shaders", NULL, NULL);
-	if (!g_glfwWindow) {
-		printf("Could not create GLFW window.\n");
-		exit(-1);
-	}
-
-	glfwMakeContextCurrent(g_glfwWindow);
-
-	if (!gladLoadGL(glfwGetProcAddress)) {
-		printf("Failed to load OpenGL Extensions using GLAD.\n");
-		exit(-1);
-	}
-
-	g_glVendor = glGetString(GL_VENDOR);
-	g_glRenderer = glGetString(GL_RENDERER);
-	printf("VENDOR: %s, DEVICE: %s\n", (char*)g_glVendor, (char*)g_glRenderer);
+	r_Init();
 
 	// Load shaders
 
@@ -83,18 +53,31 @@ int main(int argc, char** argv) {
 
 	glGenVertexArrays(1, &g_vertexVAO);
 	glBindVertexArray(g_vertexVAO);
-	glBindVertexArray(0);
 
 	glGenBuffers(1, &g_vertexVBO);
 	glBindBuffer(GL_ARRAY_BUFFER, g_vertexVBO);
 	glBufferData(GL_ARRAY_BUFFER, 1024 * 1024 * 1024, NULL, GL_STATIC_DRAW);
-	static const glm::vec3 vertexPositions[] = {
-		glm::vec3(-0.5f, -0.5f, 0.0f),
-		glm::vec3(0.0f, 0.5f, 0.0f),
-		glm::vec3(0.5f, -0.5f, 0.0f)
+	static const Vertex vertexAttributes[] = {
+		{ glm::vec3(-0.5f, -0.5f, 0.0f), glm::vec4(1.0f, 0.0f, 0.0f, 1.0f) },
+		{ glm::vec3(0.0f, 0.5f, 0.0f), glm::vec4(0.0f, 1.0f, 0.0f, 1.0f) },
+		{ glm::vec3(0.5f, -0.5f, 0.0f), glm::vec4(0.0f, 0.0f, 1.0f, 1.0f) }
 	};
-	glBufferSubData(GL_ARRAY_BUFFER, 0, 3 * sizeof(glm::vec3), vertexPositions);
+	glBufferSubData(GL_ARRAY_BUFFER, 0, 3 * sizeof(Vertex), vertexAttributes);
+	
+	// Vertex Layout
+
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (GLvoid*)0);
+	glEnableVertexAttribArray(0);
+	
+	glVertexAttribPointer(1, 4, GL_FLOAT, GL_FALSE, sizeof(Vertex), (GLvoid*)sizeof(glm::vec3));
+	glEnableVertexAttribArray(1);
+
+	// Unbind to not mess up the state
+	
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
+
+	
+	
 
 	// Global Render Settings
 
@@ -103,7 +86,7 @@ int main(int argc, char** argv) {
 	glDisable(GL_CULL_FACE);
 	glFrontFace(GL_CW);
 
-	while (!glfwWindowShouldClose(g_glfwWindow)) {
+	while (!glfwWindowShouldClose( r_GetWindow() )) {
 
 		glfwPollEvents();
 
@@ -114,11 +97,11 @@ int main(int argc, char** argv) {
 		glUseProgram(vertFragShaders.Program());
 		glDrawArrays(GL_TRIANGLES, 0, 3);
 
-		glfwSwapBuffers(g_glfwWindow);
+		glfwSwapBuffers(r_GetWindow());
 
 	}
+	
+	r_Shutdown();
 
-	glfwDestroyWindow(g_glfwWindow);
-	glfwTerminate();
 }
 
