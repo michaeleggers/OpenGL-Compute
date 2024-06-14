@@ -24,8 +24,9 @@ struct ViewProjectionMatrices {
 
 // Render Globals
 
+static GLuint g_vertexVAOs[2];
 static GLuint g_vertexVBO;
-static GLuint g_vertexVAO;
+static GLuint g_angleBuffers[2];
 
 static void SetupDirectories(int argc, char** argv) {
 
@@ -57,31 +58,51 @@ int main(int argc, char** argv) {
 
 	// Create Buffers
 
-	glGenVertexArrays(1, &g_vertexVAO);
-	glBindVertexArray(g_vertexVAO);
+	glGenVertexArrays(2, g_vertexVAOs);
 
-	glGenBuffers(1, &g_vertexVBO);
-	glBindBuffer(GL_ARRAY_BUFFER, g_vertexVBO);
-	glBufferData(GL_ARRAY_BUFFER, 1024 * 1024 * 1024, NULL, GL_STATIC_DRAW);
+	// Buffer for geometry
+
 	static const Vertex vertexAttributes[] = {
 		{ glm::vec3(-0.5f, -0.5f, 0.0f), glm::vec4(1.0f, 0.0f, 0.0f, 1.0f) },
 		{ glm::vec3(0.0f, 0.5f, 0.0f), glm::vec4(0.0f, 1.0f, 0.0f, 1.0f) },
 		{ glm::vec3(0.5f, -0.5f, 0.0f), glm::vec4(0.0f, 0.0f, 1.0f, 1.0f) }
 	};
+
+	glGenBuffers(1, &g_vertexVBO);
+	glBindBuffer(GL_ARRAY_BUFFER, g_vertexVBO);
+	glBufferData(GL_ARRAY_BUFFER, 1024 * 1024 * 1024, NULL, GL_STATIC_DRAW);
 	glBufferSubData(GL_ARRAY_BUFFER, 0, 3 * sizeof(Vertex), vertexAttributes);
-
-	// Vertex Layout
-
-	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (GLvoid*)0);
-	glEnableVertexAttribArray(0);
-
-	glVertexAttribPointer(1, 4, GL_FLOAT, GL_FALSE, sizeof(Vertex), (GLvoid*)sizeof(glm::vec3));
-	glEnableVertexAttribArray(1);
-
-	// Unbind to not mess up the state
-
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
 
+	// Create Shader Storage Buffers (SSBOs) that we read/write from/to
+
+	glGenBuffers(2, g_angleBuffers);
+	glBindBuffer(GL_SHADER_STORAGE_BUFFER, g_angleBuffers[0]);
+	glBufferData(GL_SHADER_STORAGE_BUFFER, 100 * sizeof(float), NULL, GL_DYNAMIC_COPY);
+	glBindBuffer(GL_SHADER_STORAGE_BUFFER, g_angleBuffers[1]);
+	glBufferData(GL_SHADER_STORAGE_BUFFER, 100 * sizeof(float), NULL, GL_DYNAMIC_COPY);
+
+	for (int i = 0; i < 2; i++) {
+		glBindVertexArray(g_vertexVAOs[i]);	
+
+		glBindBuffer(GL_ARRAY_BUFFER, g_vertexVBO);
+
+		// Vertex Layout standard vertex geometry
+
+		glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (GLvoid*)0);
+		glEnableVertexAttribArray(0);
+
+		glVertexAttribPointer(1, 4, GL_FLOAT, GL_FALSE, sizeof(Vertex), (GLvoid*)sizeof(glm::vec3));
+		glEnableVertexAttribArray(1);
+
+		// Vertex Layout SSBOs
+
+		glBindBuffer(GL_ARRAY_BUFFER, g_angleBuffers[i]);
+		glVertexAttribPointer(2, 1, GL_FLOAT, GL_FALSE, sizeof(float), NULL);		
+	}
+	glBindBuffer(GL_ARRAY_BUFFER, 0);
+
+	
 	// View Projection Data
 	ViewProjectionMatrices viewProjUniform{};
 
@@ -97,7 +118,7 @@ int main(int argc, char** argv) {
 
 		vertFragShaders.Activate();
 		vertFragShaders.SetViewProjMatrices(viewProjUniform.view, viewProjUniform.proj);
-		glBindVertexArray(g_vertexVAO);		
+		glBindVertexArray(g_vertexVAOs[0]);		
 		glDrawArrays(GL_TRIANGLES, 0, 3);
 
 		glfwSwapBuffers( r_GetWindow() );
