@@ -14,6 +14,8 @@ struct RenderState {
 	GLFWwindow* glfwWindow;
 	const GLubyte* vendor;
 	const GLubyte* renderer;
+	int windowWidth;
+	int windowHeight;
 };
 
 struct Vertex {
@@ -22,6 +24,7 @@ struct Vertex {
 };
 
 void GLFW_ErrorCallback(int error, const char* description);
+void GLFW_FramebufferCallback(GLFWwindow* window, int width, int height);
 void r_Init();
 void r_Shutdown();
 GLFWwindow* r_GetWindow();

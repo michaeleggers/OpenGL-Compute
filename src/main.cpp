@@ -76,15 +76,6 @@ int main(int argc, char** argv) {
 	
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
 
-	
-	
-
-	// Global Render Settings
-
-	glEnable(GL_DEPTH_TEST);
-	glDepthFunc(GL_LESS);
-	glDisable(GL_CULL_FACE);
-	glFrontFace(GL_CW);
 
 	while (!glfwWindowShouldClose( r_GetWindow() )) {
 
