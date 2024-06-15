@@ -93,6 +93,23 @@ bool Shader::Load(const std::string& vertName, const std::string& fragName, uint
 	return true;
 }
 
+bool Shader::Load(const std::string& computeName)
+{
+	if (!CompileShader(computeName, GL_COMPUTE_SHADER, m_ComputeShader)) {
+		return false;
+	}
+
+	m_ShaderProgram = glCreateProgram();
+	glAttachShader(m_ShaderProgram, m_ComputeShader);	
+	glLinkProgram(m_ShaderProgram);
+
+	if (!IsValidProgram()) {
+		return false;
+	}
+	
+	return true;
+}
+
 void Shader::Unload()
 {
 	glDeleteProgram(m_ShaderProgram);

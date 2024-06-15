@@ -102,6 +102,12 @@ int main(int argc, char** argv) {
 		exit(-1);
 	}
 
+	Shader computeShader{};
+	if (!computeShader.Load("compute_shader.glsl")) {
+		printf("Not able to load compute shader.\n");
+		exit(-1);
+	}
+
 	// Create geometry and upload to GPU
 
 	std::vector<Vertex> treeVertices = CreateTree(glm::vec3(0.0f), glm::vec3(0.0f, 20.0f, 0.0f), 20.0f, 10);

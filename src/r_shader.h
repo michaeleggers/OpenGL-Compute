@@ -21,6 +21,7 @@ class Shader {
 public:
 	
 	bool Load(const std::string& vertName, const std::string& fragName, uint32_t shaderFeatureBits = 0x0);
+	bool Load(const std::string& computeName);
 	void Unload();
 	void Activate();
 	GLuint Program() const;
@@ -39,6 +40,7 @@ private:
 
 	GLuint m_VertexShader;
 	GLuint m_FragmentShader;
+	GLuint m_ComputeShader;
 	GLuint m_ShaderProgram;
 
 	GLuint m_ViewProjUniformIndex;
