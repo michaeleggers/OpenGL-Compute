@@ -65,3 +65,16 @@ std::vector<Vertex> CreateTree(glm::vec3 root_start, glm::vec3 root_end, float b
 
 	return result;
 }
+
+std::vector<float> CreateAngles(int numVertices) {
+	std::vector<float> result{};	
+
+	result.resize(numVertices);
+
+	for (int i = 0; i < numVertices; i++) {
+
+		result[i] = 50.0f;
+	}
+
+	return result;
+}

@@ -43,7 +43,7 @@ static void SetupDirectories(int argc, char** argv) {
 	init_directories(assets_dir.c_str(), shaders_dir.c_str());
 }
 
-void InitBuffers(std::vector<Vertex>& vertices) {
+void InitBuffers(std::vector<Vertex>& vertices, std::vector<float>& angles) {
 
 	// Create the VAO
 
@@ -61,9 +61,9 @@ void InitBuffers(std::vector<Vertex>& vertices) {
 
 	glGenBuffers(2, g_angleBuffers);
 	glBindBuffer(GL_SHADER_STORAGE_BUFFER, g_angleBuffers[0]);
-	glBufferData(GL_SHADER_STORAGE_BUFFER, vertices.size() * sizeof(float), NULL, GL_DYNAMIC_COPY);
+	glBufferData(GL_SHADER_STORAGE_BUFFER, vertices.size() * sizeof(float), &angles[0], GL_DYNAMIC_COPY);
 	glBindBuffer(GL_SHADER_STORAGE_BUFFER, g_angleBuffers[1]);
-	glBufferData(GL_SHADER_STORAGE_BUFFER, vertices.size() * sizeof(float), NULL, GL_DYNAMIC_COPY);
+	glBufferData(GL_SHADER_STORAGE_BUFFER, vertices.size() * sizeof(float), &angles[0], GL_DYNAMIC_COPY);
 
 	for (int i = 0; i < 2; i++) {
 		glBindVertexArray(g_vertexVAOs[i]);
@@ -111,7 +111,8 @@ int main(int argc, char** argv) {
 	// Create geometry and upload to GPU
 
 	std::vector<Vertex> treeVertices = CreateTree(glm::vec3(0.0f), glm::vec3(0.0f, 20.0f, 0.0f), 20.0f, 10);
-	InitBuffers(treeVertices);
+	std::vector<float>  branchAngles = CreateAngles(treeVertices.size());
+	InitBuffers(treeVertices, branchAngles);
 
 	
 	// View Projection Data
