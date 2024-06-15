@@ -121,7 +121,7 @@ int main(int argc, char** argv) {
 
 		glfwPollEvents();
 
-		viewProjUniform.view = glm::lookAt(glm::vec3(0.0f, 100.0f, 70.0f), glm::vec3(0.0f), glm::vec3(0.0f, 1.0f, 0.0f));
+		viewProjUniform.view = glm::lookAt(glm::vec3(0.0f, 60.0f, 70.0f), glm::vec3(0.0f, 50.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f));
 		viewProjUniform.proj = glm::perspective(glm::radians(70.0f), (float)r_WindowWidth() / (float)r_WindowHeight(), 1.0f, 1000.0f);
 
 		glClearColor(0.3f, 0.2f, 0.7f, 1.0f);

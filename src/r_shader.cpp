@@ -18,7 +18,7 @@
 
 #define BIND_POINT_VIEW_PROJECTION    0
 #define BIND_POINT_SETTINGS			  1
-static GLuint g_PaletteBindingPoint = 2;
+#define BIND_POINT_SSBO               2
 
 
 bool Shader::Load(const std::string& vertName, const std::string& fragName, uint32_t shaderFeatureBits)
@@ -58,26 +58,32 @@ bool Shader::Load(const std::string& vertName, const std::string& fragName, uint
 	std::vector<std::string> uniformProblems{};
 
 	// Per frame matrices
+	// 
+	// NOTE: Since we use the binding qualifier in the shader we don't really have to
+	// call glUniformBlockBinding anymore. Also glGetUniformBlockIndex is not
+	// neccessary sind we know the binding a priori. Useful for Uniforms that are global
+	// to all shaders.
+	// 
 	//glBindBuffer(GL_UNIFORM_BUFFER, g_ViewProjUBO);
 	GLuint bindingPoint = BIND_POINT_VIEW_PROJECTION;
-	m_ViewProjUniformIndex = glGetUniformBlockIndex(m_ShaderProgram, "ViewProjMatrices");
-	if (m_ViewProjUniformIndex == GL_INVALID_INDEX) {		
-		uniformProblems.push_back({ "Not able to find uniform location for 'ViewProjMatrices'" });
-		uniformsFound = false;
-	}
-	glUniformBlockBinding(m_ShaderProgram, m_ViewProjUniformIndex, bindingPoint);
+	//m_ViewProjUniformIndex = glGetUniformBlockIndex(m_ShaderProgram, "ViewProjMatrices");
+	//if (m_ViewProjUniformIndex == GL_INVALID_INDEX) {		
+	//	uniformProblems.push_back({ "Not able to find uniform location for 'ViewProjMatrices'" });
+	//	uniformsFound = false;
+	//}
+	//glUniformBlockBinding(m_ShaderProgram, m_ViewProjUniformIndex, bindingPoint);
 	glBindBufferRange(GL_UNIFORM_BUFFER, bindingPoint, m_ViewProjUBO, 0, 2*sizeof(glm::mat4));
 	glBindBuffer(GL_UNIFORM_BUFFER, 0);
 
 	// Per frame settings
 	//glBindBuffer(GL_UNIFORM_BUFFER, g_SettingsUBO);
 	GLuint settingsBindingPoint = BIND_POINT_SETTINGS;
-	m_SettingsUniformIndex = glGetUniformBlockIndex(m_ShaderProgram, "Settings");
-	if (m_SettingsUniformIndex == GL_INVALID_INDEX) {
-		uniformProblems.push_back({ "Not able to find uniform location for 'Setting'" });
-		uniformsFound = false;
-	}
-	glUniformBlockBinding(m_ShaderProgram, m_SettingsUniformIndex, settingsBindingPoint);
+	//m_SettingsUniformIndex = glGetUniformBlockIndex(m_ShaderProgram, "Settings");
+	//if (m_SettingsUniformIndex == GL_INVALID_INDEX) {
+	//	uniformProblems.push_back({ "Not able to find uniform location for 'Setting'" });
+	//	uniformsFound = false;
+	//}
+	//glUniformBlockBinding(m_ShaderProgram, m_SettingsUniformIndex, settingsBindingPoint);
 	glBindBufferRange(GL_UNIFORM_BUFFER, settingsBindingPoint, m_SettingsUBO, 0, sizeof(uint32_t));
 	glBindBuffer(GL_UNIFORM_BUFFER, 0);
 

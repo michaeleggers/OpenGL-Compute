@@ -9,13 +9,18 @@ vec4 positions[3] = vec4[3](
 layout (location = 0) in vec3 in_position;
 layout (location = 1) in vec4 in_color;
 
-layout (std140) uniform ViewProjMatrices {
+
+layout (std140, binding = 0) uniform ViewProjMatrices {
     mat4 view;
     mat4 proj;
 };
 
-layout (std140) uniform Settings {
+layout (std140, binding = 1) uniform Settings {
     uint someBits;
+};
+
+layout (std140, binding = 2) readonly buffer ParticleSSBOIn {
+   float particlesIn[ ];
 };
 
 layout (location = 0) out vec4 out_color;
