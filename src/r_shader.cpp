@@ -135,7 +135,7 @@ GLuint Shader::Program() const
 
 void Shader::SetViewProjMatrices(glm::mat4 view, glm::mat4 proj)
 {	
-	glBindBuffer(GL_UNIFORM_BUFFER, m_ViewProjUBO);
+	glBindBufferBase(GL_UNIFORM_BUFFER, BIND_POINT_VIEW_PROJECTION, m_ViewProjUBO);
 	glBufferSubData(GL_UNIFORM_BUFFER, 0, sizeof(glm::mat4), glm::value_ptr(view));
 	glBufferSubData(GL_UNIFORM_BUFFER, sizeof(glm::mat4), sizeof(glm::mat4), glm::value_ptr(proj));
 	glBindBuffer(GL_UNIFORM_BUFFER, 0);
@@ -163,7 +163,7 @@ void Shader::SetVec3(std::string uniformName, glm::vec3 vec3)
 void Shader::SetShaderSettingBits(uint32_t bits)
 {
 	m_SettingsBits |= bits;
-	glBindBuffer(GL_UNIFORM_BUFFER, m_SettingsUBO);
+	glBindBufferBase(GL_UNIFORM_BUFFER, BIND_POINT_SETTINGS, m_SettingsUBO);
 	glBufferSubData(GL_UNIFORM_BUFFER, 0, sizeof(uint32_t), (void*)&m_SettingsBits);
 	glBindBuffer(GL_UNIFORM_BUFFER, 0);
 }
@@ -171,7 +171,7 @@ void Shader::SetShaderSettingBits(uint32_t bits)
 void Shader::ResetShaderSettingBits(uint32_t bits)
 {
 	m_SettingsBits = (m_SettingsBits & (~bits));
-	glBindBuffer(GL_UNIFORM_BUFFER, m_SettingsUBO);
+	glBindBufferBase(GL_UNIFORM_BUFFER, BIND_POINT_SETTINGS, m_SettingsUBO);
 	glBufferSubData(GL_UNIFORM_BUFFER, 0, sizeof(uint32_t), (void*)&m_SettingsBits);
 	glBindBuffer(GL_UNIFORM_BUFFER, 0);
 }

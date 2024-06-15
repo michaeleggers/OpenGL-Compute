@@ -22,12 +22,17 @@ struct ViewProjectionMatrices {
 	glm::mat4 proj;
 };
 
+struct ComputeShaderData {
+	float deltaTime;
+	int   numVertices;
+};
 
 // Render Globals
 
 static GLuint g_vertexVAOs[2];
-static GLuint g_vertexVBO;
 static GLuint g_angleBuffers[2];
+static GLuint g_vertexVBO;
+static GLuint g_computeShaderUBO;
 
 static void SetupDirectories(int argc, char** argv) {
 
@@ -64,6 +69,13 @@ void InitBuffers(std::vector<Vertex>& vertices, std::vector<float>& angles) {
 	glBufferData(GL_SHADER_STORAGE_BUFFER, vertices.size() * sizeof(float), &angles[0], GL_DYNAMIC_COPY);
 	glBindBuffer(GL_SHADER_STORAGE_BUFFER, g_angleBuffers[1]);
 	glBufferData(GL_SHADER_STORAGE_BUFFER, vertices.size() * sizeof(float), &angles[0], GL_DYNAMIC_COPY);
+
+	// Create Uniform Buffer for Compute Shader
+
+	glGenBuffers(1, &g_computeShaderUBO);
+	glBindBuffer(GL_UNIFORM_BUFFER, g_computeShaderUBO);
+	glBufferData(GL_UNIFORM_BUFFER, sizeof(ComputeShaderData), NULL, GL_DYNAMIC_DRAW);
+	glBindBuffer(GL_UNIFORM_BUFFER, 0);
 
 	for (int i = 0; i < 2; i++) {
 		glBindVertexArray(g_vertexVAOs[i]);
@@ -118,6 +130,11 @@ int main(int argc, char** argv) {
 	// View Projection Data
 	ViewProjectionMatrices viewProjUniform{};
 
+	// Compute Shader Data
+	ComputeShaderData computeShaderData{};
+	computeShaderData.deltaTime = 0.1f;
+	computeShaderData.numVertices = treeVertices.size();
+
 	uint64_t frameIndex = 0;
 
 	while (!glfwWindowShouldClose( r_GetWindow() )) {
@@ -131,6 +148,9 @@ int main(int argc, char** argv) {
 
 		glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, g_angleBuffers[frameIndex]);
 		glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 1, g_angleBuffers[frameIndex ^ 1]);
+		glBindBufferBase(GL_UNIFORM_BUFFER, 2, g_computeShaderUBO);
+		glBufferSubData(GL_UNIFORM_BUFFER, 0, sizeof(ComputeShaderData), &computeShaderData);		
+		//glBindBuffer(GL_UNIFORM_BUFFER, 0);
 
 		//glDispatchCompute(treeVertices.size() / 256, 1, 1);
 		glDispatchCompute(1, 1, 1);
