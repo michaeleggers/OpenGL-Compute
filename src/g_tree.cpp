@@ -73,7 +73,7 @@ std::vector<float> CreateAngles(int numVertices) {
 
 	for (int i = 0; i < numVertices; i++) {
 
-		result[i] = 50.0f;
+		result[i] = 0.0f;
 	}
 
 	return result;

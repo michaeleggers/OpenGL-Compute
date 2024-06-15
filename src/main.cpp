@@ -110,7 +110,7 @@ int main(int argc, char** argv) {
 
 	// Create geometry and upload to GPU
 
-	std::vector<Vertex> treeVertices = CreateTree(glm::vec3(0.0f), glm::vec3(0.0f, 20.0f, 0.0f), 20.0f, 10);
+	std::vector<Vertex> treeVertices = CreateTree(glm::vec3(0.0f), glm::vec3(0.0f, 20.0f, 0.0f), 20.0f, 2);
 	std::vector<float>  branchAngles = CreateAngles(treeVertices.size());
 	InitBuffers(treeVertices, branchAngles);
 
@@ -118,23 +118,42 @@ int main(int argc, char** argv) {
 	// View Projection Data
 	ViewProjectionMatrices viewProjUniform{};
 
+	uint64_t frameIndex = 0;
+
 	while (!glfwWindowShouldClose( r_GetWindow() )) {
 
 		glfwPollEvents();
 
-		viewProjUniform.view = glm::lookAt(glm::vec3(0.0f, 60.0f, 70.0f), glm::vec3(0.0f, 50.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f));
-		viewProjUniform.proj = glm::perspective(glm::radians(70.0f), (float)r_WindowWidth() / (float)r_WindowHeight(), 1.0f, 1000.0f);
 
+		// Compute Stage
+
+		computeShader.Activate();
+
+		glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, g_angleBuffers[frameIndex]);
+		glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 1, g_angleBuffers[frameIndex ^ 1]);
+
+		//glDispatchCompute(treeVertices.size() / 256, 1, 1);
+		glDispatchCompute(1, 1, 1);
+
+		//glViewport(0, 0, r_WindowWidth(), r_WindowWidth());
 		glClearColor(0.3f, 0.2f, 0.7f, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
+		// Graphics Stage
+
+		viewProjUniform.view = glm::lookAt(glm::vec3(0.0f, 60.0f, 70.0f), glm::vec3(0.0f, 50.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f));
+		viewProjUniform.proj = glm::perspective(glm::radians(70.0f), (float)r_WindowWidth() / (float)r_WindowHeight(), 1.0f, 1000.0f);
+
 		vertFragShaders.Activate();
 		vertFragShaders.SetViewProjMatrices(viewProjUniform.view, viewProjUniform.proj);
-		glBindVertexArray(g_vertexVAOs[0]);		
+		glBindVertexArray(g_vertexVAOs[frameIndex]);		
 		glLineWidth(1.0f);
-		glDrawArrays(GL_LINES, 0, treeVertices.size());
+		glPointSize(3.0f);
+		glDrawArrays(GL_POINTS, 0, treeVertices.size());
 
 		glfwSwapBuffers( r_GetWindow() );
+
+		frameIndex ^= 1; // Swap the frame index ( = swap the buffers used for reading/writing)
 
 	}
 	
