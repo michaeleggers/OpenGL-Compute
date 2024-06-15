@@ -15,6 +15,7 @@
 #include "platform.h"
 #include "r_main.h"
 #include "r_shader.h"
+#include "g_tree.h"
 
 struct ViewProjectionMatrices {
 	glm::mat4 view;
@@ -42,6 +43,51 @@ static void SetupDirectories(int argc, char** argv) {
 	init_directories(assets_dir.c_str(), shaders_dir.c_str());
 }
 
+void InitBuffers(std::vector<Vertex>& vertices) {
+
+	// Create the VAO
+
+	glGenVertexArrays(2, g_vertexVAOs);
+
+	// Geometry Buffer
+
+	glGenBuffers(1, &g_vertexVBO);
+	glBindBuffer(GL_ARRAY_BUFFER, g_vertexVBO);
+	glBufferData(GL_ARRAY_BUFFER, 1.5 * 1024 * 1024 * 1024, NULL, GL_STATIC_DRAW);
+	glBufferSubData(GL_ARRAY_BUFFER, 0, vertices.size() * sizeof(Vertex), &vertices[0]);
+	glBindBuffer(GL_ARRAY_BUFFER, 0);
+
+	// Create Shader Storage Buffers (SSBOs) that we read/write from/to
+
+	glGenBuffers(2, g_angleBuffers);
+	glBindBuffer(GL_SHADER_STORAGE_BUFFER, g_angleBuffers[0]);
+	glBufferData(GL_SHADER_STORAGE_BUFFER, vertices.size() * sizeof(float), NULL, GL_DYNAMIC_COPY);
+	glBindBuffer(GL_SHADER_STORAGE_BUFFER, g_angleBuffers[1]);
+	glBufferData(GL_SHADER_STORAGE_BUFFER, vertices.size() * sizeof(float), NULL, GL_DYNAMIC_COPY);
+
+	for (int i = 0; i < 2; i++) {
+		glBindVertexArray(g_vertexVAOs[i]);
+
+		glBindBuffer(GL_ARRAY_BUFFER, g_vertexVBO);
+
+		// Vertex Layout standard vertex geometry
+
+		glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (GLvoid*)0);
+		glEnableVertexAttribArray(0);
+
+		glVertexAttribPointer(1, 4, GL_FLOAT, GL_FALSE, sizeof(Vertex), (GLvoid*)sizeof(glm::vec3));
+		glEnableVertexAttribArray(1);
+
+		// Layout SSBOs
+
+		glBindBuffer(GL_ARRAY_BUFFER, g_angleBuffers[i]);
+		glVertexAttribPointer(2, 1, GL_FLOAT, GL_FALSE, sizeof(float), NULL);
+		glEnableVertexAttribArray(2);
+
+	}
+	glBindBuffer(GL_ARRAY_BUFFER, 0);
+}
+
 int main(int argc, char** argv) {
 
 	SetupDirectories(argc, argv);
@@ -56,51 +102,10 @@ int main(int argc, char** argv) {
 		exit(-1);
 	}
 
-	// Create Buffers
+	// Create geometry and upload to GPU
 
-	glGenVertexArrays(2, g_vertexVAOs);
-
-	// Buffer for geometry
-
-	static const Vertex vertexAttributes[] = {
-		{ glm::vec3(-0.5f, -0.5f, 0.0f), glm::vec4(1.0f, 0.0f, 0.0f, 1.0f) },
-		{ glm::vec3(0.0f, 0.5f, 0.0f), glm::vec4(0.0f, 1.0f, 0.0f, 1.0f) },
-		{ glm::vec3(0.5f, -0.5f, 0.0f), glm::vec4(0.0f, 0.0f, 1.0f, 1.0f) }
-	};
-
-	glGenBuffers(1, &g_vertexVBO);
-	glBindBuffer(GL_ARRAY_BUFFER, g_vertexVBO);
-	glBufferData(GL_ARRAY_BUFFER, 1024 * 1024 * 1024, NULL, GL_STATIC_DRAW);
-	glBufferSubData(GL_ARRAY_BUFFER, 0, 3 * sizeof(Vertex), vertexAttributes);
-	glBindBuffer(GL_ARRAY_BUFFER, 0);
-
-	// Create Shader Storage Buffers (SSBOs) that we read/write from/to
-
-	glGenBuffers(2, g_angleBuffers);
-	glBindBuffer(GL_SHADER_STORAGE_BUFFER, g_angleBuffers[0]);
-	glBufferData(GL_SHADER_STORAGE_BUFFER, 100 * sizeof(float), NULL, GL_DYNAMIC_COPY);
-	glBindBuffer(GL_SHADER_STORAGE_BUFFER, g_angleBuffers[1]);
-	glBufferData(GL_SHADER_STORAGE_BUFFER, 100 * sizeof(float), NULL, GL_DYNAMIC_COPY);
-
-	for (int i = 0; i < 2; i++) {
-		glBindVertexArray(g_vertexVAOs[i]);	
-
-		glBindBuffer(GL_ARRAY_BUFFER, g_vertexVBO);
-
-		// Vertex Layout standard vertex geometry
-
-		glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (GLvoid*)0);
-		glEnableVertexAttribArray(0);
-
-		glVertexAttribPointer(1, 4, GL_FLOAT, GL_FALSE, sizeof(Vertex), (GLvoid*)sizeof(glm::vec3));
-		glEnableVertexAttribArray(1);
-
-		// Vertex Layout SSBOs
-
-		glBindBuffer(GL_ARRAY_BUFFER, g_angleBuffers[i]);
-		glVertexAttribPointer(2, 1, GL_FLOAT, GL_FALSE, sizeof(float), NULL);		
-	}
-	glBindBuffer(GL_ARRAY_BUFFER, 0);
+	std::vector<Vertex> treeVertices = CreateTree(glm::vec3(0.0f), glm::vec3(0.0f, 20.0f, 0.0f), 20.0f, 10);
+	InitBuffers(treeVertices);
 
 	
 	// View Projection Data
@@ -110,8 +115,8 @@ int main(int argc, char** argv) {
 
 		glfwPollEvents();
 
-		viewProjUniform.view = glm::lookAt(glm::vec3(0.0f, 0.0f, 2.0f), glm::vec3(0.0f), glm::vec3(0.0f, 1.0f, 0.0f));
-		viewProjUniform.proj = glm::perspective(glm::radians(70.0f), (float)r_WindowWidth() / (float)r_WindowHeight(), 1.0f, 100.0f);
+		viewProjUniform.view = glm::lookAt(glm::vec3(0.0f, 100.0f, 70.0f), glm::vec3(0.0f), glm::vec3(0.0f, 1.0f, 0.0f));
+		viewProjUniform.proj = glm::perspective(glm::radians(70.0f), (float)r_WindowWidth() / (float)r_WindowHeight(), 1.0f, 1000.0f);
 
 		glClearColor(0.3f, 0.2f, 0.7f, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -119,7 +124,8 @@ int main(int argc, char** argv) {
 		vertFragShaders.Activate();
 		vertFragShaders.SetViewProjMatrices(viewProjUniform.view, viewProjUniform.proj);
 		glBindVertexArray(g_vertexVAOs[0]);		
-		glDrawArrays(GL_TRIANGLES, 0, 3);
+		glLineWidth(1.0f);
+		glDrawArrays(GL_LINES, 0, treeVertices.size());
 
 		glfwSwapBuffers( r_GetWindow() );
 

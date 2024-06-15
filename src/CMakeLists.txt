@@ -11,6 +11,10 @@ add_executable(ComputeShader
 	r_shader.cpp
 	r_main.cpp
 	r_main.h
+	g_tree.h
+	g_tree.cpp
+	utils.h
+	utils.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/dependencies/glad/src/gl.c
 	# ${CMAKE_CURRENT_SOURCE_DIR}/dependencies/glad/KHR/khrplatform.h
 	# ${CMAKE_CURRENT_SOURCE_DIR}/dependencies/glad/glad/glad.h
