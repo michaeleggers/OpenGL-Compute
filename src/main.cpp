@@ -22,6 +22,7 @@ struct ViewProjectionMatrices {
 	glm::mat4 proj;
 };
 
+
 struct ComputeShaderData {
 	float deltaTime;
 	int   numVertices;
@@ -97,7 +98,7 @@ void InitBuffers(std::vector<Vertex>& vertices, std::vector<float>& angles) {
 		glEnableVertexAttribArray(2);
 
 	}
-	glBindBuffer(GL_ARRAY_BUFFER, 0);
+	glBindVertexArray(0);
 }
 
 int main(int argc, char** argv) {
@@ -122,7 +123,7 @@ int main(int argc, char** argv) {
 
 	// Create geometry and upload to GPU
 
-	std::vector<Vertex> treeVertices = CreateTree(glm::vec3(0.0f), glm::vec3(0.0f, 20.0f, 0.0f), 20.0f, 2);
+	std::vector<Vertex> treeVertices = CreateTree(glm::vec3(0.0f), glm::vec3(0.0f, 20.0f, 0.0f), 20.0f, 10);
 	std::vector<float>  branchAngles = CreateAngles(treeVertices.size());
 	InitBuffers(treeVertices, branchAngles);
 
@@ -152,8 +153,10 @@ int main(int argc, char** argv) {
 		glBufferSubData(GL_UNIFORM_BUFFER, 0, sizeof(ComputeShaderData), &computeShaderData);		
 		//glBindBuffer(GL_UNIFORM_BUFFER, 0);
 
-		//glDispatchCompute(treeVertices.size() / 256, 1, 1);
-		glDispatchCompute(1, 1, 1);
+		glDispatchCompute( (treeVertices.size() + 255) / 256, 1, 1);
+		//glDispatchCompute(1, 1, 1);
+
+		glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
 
 		//glViewport(0, 0, r_WindowWidth(), r_WindowWidth());
 		glClearColor(0.3f, 0.2f, 0.7f, 1.0f);
@@ -168,13 +171,13 @@ int main(int argc, char** argv) {
 		vertFragShaders.SetViewProjMatrices(viewProjUniform.view, viewProjUniform.proj);
 		glBindVertexArray(g_vertexVAOs[frameIndex]);		
 		glLineWidth(1.0f);
-		glPointSize(3.0f);
+		glPointSize(9.0f);
 		glDrawArrays(GL_POINTS, 0, treeVertices.size());
 
 		glfwSwapBuffers( r_GetWindow() );
 
 		frameIndex ^= 1; // Swap the frame index ( = swap the buffers used for reading/writing)
-
+		
 	}
 	
 	r_Shutdown();

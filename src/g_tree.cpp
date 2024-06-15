@@ -44,10 +44,10 @@ std::vector<Vertex> CreateTree(glm::vec3 root_start, glm::vec3 root_end, float b
 
 	Vertex v0 = {};
 	v0.pos = glm::vec3(0.0f);
-	v0.color = glm::vec4(1.0f, 0.6f, 0.0f, 1.0f);
+	v0.color = glm::vec4(1.0f, 0.0f, 0.0f, 1.0f);
 	Vertex v1 = {};
 	v1.pos = glm::vec3(0.0f, branch_length, 0.0f);
-	v1.color = glm::vec4(1.0f, 0.9f, 0.0f, 1.0f);
+	v1.color = glm::vec4(1.0f, 0.0f, 0.0f, 1.0f);
 
 	Branch root = { v0, v1 };
 

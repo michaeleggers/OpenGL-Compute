@@ -1,10 +1,16 @@
 #version 460 core
 
-layout(std140, binding = 0) readonly buffer ParticleSSBOIn {
+// NOTE: std430 is very important if we want our data NOT to be rounded
+// up to 16 bytes. So if we want to have an array of floats each element
+// will be exactly aligned to 4 bytes. In std140 this would not work because
+// each float would be rounded up to 16 bytes which makes you miss
+// 3 elements with each index increment.
+
+layout(std430, binding = 0) readonly buffer ParticleSSBOIn {
    float particlesIn[ ];
 };
 
-layout(std140, binding = 1) buffer ParticleSSBOOut {
+layout(std430, binding = 1) buffer ParticleSSBOOut {
    float particlesOut[ ];
 };
 
@@ -16,13 +22,18 @@ layout(std140, binding = 2) uniform GlobalData {
 layout (local_size_x = 256, local_size_y = 1, local_size_z = 1) in;
 
 void main() {
-    uint index = gl_GlobalInvocationID.x;  
-        
-    float particleIn = particlesIn[index];
+   uint index = gl_GlobalInvocationID.x;  
 
-    particlesOut[index] = particleIn;
-    particlesOut[index].x += deltaTime;    
+   if (index < numVertices) {
+      float particleIn = particlesIn[index];
 
-    // barrier();
-    
+      particlesOut[index] = particleIn;
+      particlesOut[index].x += deltaTime;    
+         
+   }
+
+
+
+   // barrier();
+   
 }
