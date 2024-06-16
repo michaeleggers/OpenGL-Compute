@@ -61,9 +61,16 @@ void main() {
 
    if (index < numBranches) {
       BranchComputeData particleIn = particlesIn[index];      
-  
-      // particlesOut[index].orientation = vec4(42.0f); // = particleIn;
+
+      vec4 qRot = particleIn.orientation;
+
+      float angle = sin(0.001f * totalTime);
+      angle *= 20.0f;
+      vec4 qRotAdd = quat_from_axis_angle(vec3(0.0f, 0.0f, 1.0f), angle);
+
+      // particlesOut[index].rotationAxis = vec4(42.0f); // = particleIn;
       particlesOut[index] = particleIn;
+      particlesOut[index].orientation = qRotAdd; //quat_mult(qRotAdd, qRot);
 
       // particlesOut[index].x += 0.01f * deltaTime;    
          

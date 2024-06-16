@@ -142,7 +142,7 @@ int main(int argc, char** argv) {
 
 	// Create geometry and upload to GPU
 
-	std::vector<Branch> tree = CreateTree(glm::vec3(0.0f), glm::vec3(0.0f, 20.0f, 0.0f), 20.0f, 10);	
+	std::vector<Branch> tree = CreateTree(glm::vec3(0.0f), glm::vec3(0.0f, 20.0f, 0.0f), 20.0f, 20);	
 	InitBuffers(tree);
 
 	
@@ -159,7 +159,7 @@ int main(int argc, char** argv) {
 
 
 	// Toggle VSYNC
-	glfwSwapInterval(1);
+	glfwSwapInterval(0);
 
 	double deltaTimeMs = 0.0;
 	double totalTimeMs = 0.0;

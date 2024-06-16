@@ -43,7 +43,7 @@ void main () {
     vec3 pos = in_position;    
     
     BranchComputeData branchData = particlesIn[in_branchIndex];
-    pos.x += branchData.orientation.z;
+    pos = rotate_vertex_position(pos, branchData.orientation);
 
 
     // pos = rotate_vertex_position(in_position, qRot);

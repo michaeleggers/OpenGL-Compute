@@ -11,7 +11,7 @@
 #include <vector>
 
 struct BranchComputeData {
-	glm::vec4 rotationAxis;
+	glm::vec4 orientation;
 	int       parentIndex;  // -1 = Root branch
 	glm::vec3 padding;
 };

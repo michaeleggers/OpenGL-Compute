@@ -23,15 +23,15 @@ void AddBranchRec(Branch root, float angle, float branch_length, std::vector<Bra
 	branch_length *= 0.7f;
 
 	glm::vec3 rotation_axis = glm::normalize(glm::vec3(
-		//rand_between(-1.0f, 1.0f),
-		//rand_between(-1.0f, 1.0f),
-		//rand_between(-1.0f, 1.0f)
-		0.0f, 0.0f, 1.0f
+		rand_between(-1.0f, 1.0f),
+		rand_between(-1.0f, 1.0f),
+		rand_between(-1.0f, 1.0f)
+		//0.0f, 0.0f, 1.0f
 	));
 	glm::quat q = glm::angleAxis(glm::radians(angle), rotation_axis); // rotate around arbitrary axis
 	glm::vec3 new_branch_dir = glm::rotate(q, root_dir);
 	branch.end.pos = branch.start.pos + branch_length * new_branch_dir;
-	branch.computeData.rotationAxis = glm::vec4(99.0f); //{ q.x, q.y, q.z, q.w };
+	branch.computeData.orientation = { q.x, q.y, q.z, q.w };
 	branch.computeData.parentIndex = parentID;
 
 	branch_list.push_back(branch);
@@ -53,7 +53,7 @@ std::vector<Branch> CreateTree(glm::vec3 root_start, glm::vec3 root_end, float b
 
 	Branch root = { v0, v1 };
 	glm::quat q = glm::angleAxis(glm::radians(0.0f), glm::vec3(0.0f, 0.0f, 1.0f));
-	root.computeData.rotationAxis = { q.x, q.y, q.z, q.w };
+	root.computeData.orientation= { q.x, q.y, q.z, q.w };
 	root.computeData.parentIndex = -1;
 
 	std::vector<Branch> branch_list = {};
