@@ -5,6 +5,8 @@
 // will be exactly aligned to 4 bytes. In std140 this would not work because
 // each float would be rounded up to 16 bytes which makes you miss
 // 3 elements with each index increment.
+//
+// See: https://www.khronos.org/opengl/wiki/Interface_Block_(GLSL)#:~:text=vec3%20at%20all.-,std430,-%3A%20This%20layout%20works
 
 layout(std430, binding = 0) readonly buffer ParticleSSBOIn {
    float particlesIn[ ];
@@ -28,12 +30,9 @@ void main() {
       float particleIn = particlesIn[index];
 
       particlesOut[index] = particleIn;
-      particlesOut[index].x += deltaTime;    
+      particlesOut[index].x += 0.01f * deltaTime;    
          
    }
 
-
-
-   // barrier();
-   
+   // barrier();   
 }

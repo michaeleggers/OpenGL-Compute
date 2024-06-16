@@ -133,17 +133,28 @@ int main(int argc, char** argv) {
 
 	// Compute Shader Data
 	ComputeShaderData computeShaderData{};
-	computeShaderData.deltaTime = 0.1f;
+	computeShaderData.deltaTime = 0.001f;
 	computeShaderData.numVertices = treeVertices.size();
 
 	uint64_t frameIndex = 0;
 
+
+	// Toggle VSYNC
+	glfwSwapInterval(0);
+
+	double deltaTimeMs = 0.0;
+	double totalTimeMs = 0.0;
+	double updateFreqMs = 1000.0;
 	while (!glfwWindowShouldClose( r_GetWindow() )) {
+
+		double startTime = glfwGetTime();
 
 		glfwPollEvents();
 
 
 		// Compute Stage
+
+		computeShaderData.deltaTime = (float)deltaTimeMs;
 
 		computeShader.Activate();
 
@@ -172,9 +183,18 @@ int main(int argc, char** argv) {
 		glBindVertexArray(g_vertexVAOs[frameIndex]);		
 		glLineWidth(1.0f);
 		glPointSize(9.0f);
-		glDrawArrays(GL_POINTS, 0, treeVertices.size());
+		glDrawArrays(GL_LINES, 0, treeVertices.size());
 
 		glfwSwapBuffers( r_GetWindow() );
+
+		double endTime = glfwGetTime();
+		deltaTimeMs = (endTime - startTime) * 1000.0;
+		totalTimeMs += deltaTimeMs;
+
+		if (totalTimeMs > updateFreqMs) {
+			printf("delta time: %f\n", deltaTimeMs);
+			totalTimeMs = 0.0;
+		}
 
 		frameIndex ^= 1; // Swap the frame index ( = swap the buffers used for reading/writing)
 		
