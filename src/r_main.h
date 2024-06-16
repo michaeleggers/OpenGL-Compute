@@ -1,6 +1,8 @@
 #ifndef _R_MAIN_H_
 #define _R_MAIN_H_
 
+#include <stdint.h>
+
 #include <glad/gl.h>
 
 #define GLFW_INCLUDE_NONE
@@ -21,6 +23,7 @@ struct RenderState {
 struct Vertex {
 	glm::vec3 pos;
 	glm::vec4 color;
+	uint32_t  branchIndex;
 };
 
 void GLFW_ErrorCallback(int error, const char* description);

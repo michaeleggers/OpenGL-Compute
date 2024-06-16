@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <stdint.h>
 
 #include <string>
 
@@ -25,7 +26,8 @@ struct ViewProjectionMatrices {
 
 struct ComputeShaderData {
 	float deltaTime;
-	int   numVertices;
+	float totalTime;
+	int   numBranches;
 };
 
 // Render Globals
@@ -49,13 +51,23 @@ static void SetupDirectories(int argc, char** argv) {
 	init_directories(assets_dir.c_str(), shaders_dir.c_str());
 }
 
-void InitBuffers(std::vector<Vertex>& vertices, std::vector<float>& angles) {
+void InitBuffers(std::vector<Branch>& branches) {
 
 	// Create the VAO
 
 	glGenVertexArrays(2, g_vertexVAOs);
 
 	// Geometry Buffer
+
+	std::vector<Vertex> vertices{};
+	uint32_t branchIndex = 0;
+	for (Branch& branch : branches) {
+		branch.start.branchIndex = branchIndex;
+		branch.end.branchIndex = branchIndex;
+		vertices.push_back(branch.start);
+		vertices.push_back(branch.end);
+		branchIndex++;
+	}
 
 	glGenBuffers(1, &g_vertexVBO);
 	glBindBuffer(GL_ARRAY_BUFFER, g_vertexVBO);
@@ -65,11 +77,16 @@ void InitBuffers(std::vector<Vertex>& vertices, std::vector<float>& angles) {
 
 	// Create Shader Storage Buffers (SSBOs) that we read/write from/to
 
+	std::vector<BranchComputeData> computeData{};
+	for (Branch& branch : branches) {
+		computeData.push_back(branch.computeData);		
+	}
+
 	glGenBuffers(2, g_angleBuffers);
 	glBindBuffer(GL_SHADER_STORAGE_BUFFER, g_angleBuffers[0]);
-	glBufferData(GL_SHADER_STORAGE_BUFFER, vertices.size() * sizeof(float), &angles[0], GL_DYNAMIC_COPY);
+	glBufferData(GL_SHADER_STORAGE_BUFFER, computeData.size() * sizeof(BranchComputeData), &computeData[0], GL_DYNAMIC_COPY);
 	glBindBuffer(GL_SHADER_STORAGE_BUFFER, g_angleBuffers[1]);
-	glBufferData(GL_SHADER_STORAGE_BUFFER, vertices.size() * sizeof(float), &angles[0], GL_DYNAMIC_COPY);
+	glBufferData(GL_SHADER_STORAGE_BUFFER, computeData.size() * sizeof(BranchComputeData), &computeData[0], GL_DYNAMIC_COPY);
 
 	// Create Uniform Buffer for Compute Shader
 
@@ -91,12 +108,14 @@ void InitBuffers(std::vector<Vertex>& vertices, std::vector<float>& angles) {
 		glVertexAttribPointer(1, 4, GL_FLOAT, GL_FALSE, sizeof(Vertex), (GLvoid*)sizeof(glm::vec3));
 		glEnableVertexAttribArray(1);
 
-		// Layout SSBOs
-
-		glBindBuffer(GL_ARRAY_BUFFER, g_angleBuffers[i]);
-		glVertexAttribPointer(2, 1, GL_FLOAT, GL_FALSE, sizeof(float), NULL);
+		glVertexAttribIPointer(2, 1, GL_UNSIGNED_INT, sizeof(Vertex), (GLvoid*)(sizeof(glm::vec3) + sizeof(glm::vec4)));
 		glEnableVertexAttribArray(2);
 
+		// Layout SSBOs (for now disabled as we use the SSBO as such)
+
+		//glBindBuffer(GL_ARRAY_BUFFER, g_angleBuffers[i]);
+		//glVertexAttribPointer(2, 4, GL_FLOAT, GL_FALSE, sizeof(BranchComputeData), (GLvoid*)0);
+		//glEnableVertexAttribArray(2);
 	}
 	glBindVertexArray(0);
 }
@@ -123,9 +142,8 @@ int main(int argc, char** argv) {
 
 	// Create geometry and upload to GPU
 
-	std::vector<Vertex> treeVertices = CreateTree(glm::vec3(0.0f), glm::vec3(0.0f, 20.0f, 0.0f), 20.0f, 10);
-	std::vector<float>  branchAngles = CreateAngles(treeVertices.size());
-	InitBuffers(treeVertices, branchAngles);
+	std::vector<Branch> tree = CreateTree(glm::vec3(0.0f), glm::vec3(0.0f, 20.0f, 0.0f), 20.0f, 10);	
+	InitBuffers(tree);
 
 	
 	// View Projection Data
@@ -134,13 +152,14 @@ int main(int argc, char** argv) {
 	// Compute Shader Data
 	ComputeShaderData computeShaderData{};
 	computeShaderData.deltaTime = 0.001f;
-	computeShaderData.numVertices = treeVertices.size();
+	computeShaderData.totalTime = 0.0f;
+	computeShaderData.numBranches = tree.size();
 
 	uint64_t frameIndex = 0;
 
 
 	// Toggle VSYNC
-	glfwSwapInterval(0);
+	glfwSwapInterval(1);
 
 	double deltaTimeMs = 0.0;
 	double totalTimeMs = 0.0;
@@ -155,6 +174,7 @@ int main(int argc, char** argv) {
 		// Compute Stage
 
 		computeShaderData.deltaTime = (float)deltaTimeMs;
+		computeShaderData.totalTime += (float)deltaTimeMs;
 
 		computeShader.Activate();
 
@@ -164,7 +184,7 @@ int main(int argc, char** argv) {
 		glBufferSubData(GL_UNIFORM_BUFFER, 0, sizeof(ComputeShaderData), &computeShaderData);		
 		//glBindBuffer(GL_UNIFORM_BUFFER, 0);
 
-		glDispatchCompute( (treeVertices.size() + 255) / 256, 1, 1);
+		glDispatchCompute( (tree.size() + 255) / 256, 1, 1);
 		//glDispatchCompute(1, 1, 1);
 
 		glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
@@ -180,10 +200,11 @@ int main(int argc, char** argv) {
 
 		vertFragShaders.Activate();
 		vertFragShaders.SetViewProjMatrices(viewProjUniform.view, viewProjUniform.proj);
+		glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 2, g_angleBuffers[frameIndex]);
 		glBindVertexArray(g_vertexVAOs[frameIndex]);		
 		glLineWidth(1.0f);
 		glPointSize(9.0f);
-		glDrawArrays(GL_LINES, 0, treeVertices.size());
+		glDrawArrays(GL_LINES, 0, 2*tree.size());
 
 		glfwSwapBuffers( r_GetWindow() );
 

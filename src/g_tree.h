@@ -3,16 +3,27 @@
 
 #include "r_main.h"
 
+#define GLM_FORCE_RADIANS
+#include <glm/glm.hpp>
+#include <glm/ext.hpp>
+#include <glm/gtx/quaternion.hpp>
+
 #include <vector>
 
-struct Branch {
-	Vertex start;
-	Vertex end;
+struct BranchComputeData {
+	glm::vec4 rotationAxis;
+	int       parentIndex;  // -1 = Root branch
+	glm::vec3 padding;
 };
 
-std::vector<Vertex> CreateTree(glm::vec3 root_start, glm::vec3 root_end, float branch_angle, int max_depth);
-void                AddBranchRec(Branch root, float angle, float branch_length, std::vector<Branch>& branch_list, int max_depth);
-std::vector<float>  CreateAngles(int numVertices);
+struct Branch {
+	Vertex			  start;
+	Vertex			  end;
+	BranchComputeData computeData;
+};
+
+std::vector<Branch> CreateTree(glm::vec3 root_start, glm::vec3 root_end, float branch_angle, int max_depth);
+void                AddBranchRec(Branch root, float angle, float branch_length, std::vector<Branch>& branch_list, int max_depth, int parentID);
 
 
 #endif
