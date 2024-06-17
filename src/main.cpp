@@ -33,7 +33,8 @@ struct ComputeShaderData {
 // Render Globals
 
 static GLuint g_vertexVAOs[2];
-static GLuint g_angleBuffers[2];
+static GLuint g_branchBuffers[2];
+static GLuint g_vertexBuffers[2];
 static GLuint g_vertexVBO;
 static GLuint g_computeShaderUBO;
 
@@ -81,11 +82,17 @@ void InitBuffers(std::vector<Branch>& branches) {
 		computeData.push_back(branch.computeData);		
 	}
 
-	glGenBuffers(2, g_angleBuffers);
-	glBindBuffer(GL_SHADER_STORAGE_BUFFER, g_angleBuffers[0]);
+	glGenBuffers(2, g_branchBuffers);
+	glBindBuffer(GL_SHADER_STORAGE_BUFFER, g_branchBuffers[0]);
 	glBufferData(GL_SHADER_STORAGE_BUFFER, computeData.size() * sizeof(BranchComputeData), &computeData[0], GL_DYNAMIC_COPY);
-	glBindBuffer(GL_SHADER_STORAGE_BUFFER, g_angleBuffers[1]);
+	glBindBuffer(GL_SHADER_STORAGE_BUFFER, g_branchBuffers[1]);
 	glBufferData(GL_SHADER_STORAGE_BUFFER, computeData.size() * sizeof(BranchComputeData), &computeData[0], GL_DYNAMIC_COPY);
+
+	glGenBuffers(2, g_vertexBuffers);
+	glBindBuffer(GL_SHADER_STORAGE_BUFFER, g_vertexBuffers[0]);
+	glBufferData(GL_SHADER_STORAGE_BUFFER, vertices.size() * sizeof(Vertex), &vertices[0], GL_DYNAMIC_COPY);
+	glBindBuffer(GL_SHADER_STORAGE_BUFFER, g_vertexBuffers[1]);
+	glBufferData(GL_SHADER_STORAGE_BUFFER, vertices.size() * sizeof(Vertex), &vertices[0], GL_DYNAMIC_COPY);
 
 	// Create Uniform Buffer for Compute Shader
 
@@ -110,11 +117,18 @@ void InitBuffers(std::vector<Branch>& branches) {
 		glVertexAttribIPointer(2, 1, GL_UNSIGNED_INT, sizeof(Vertex), (GLvoid*)(sizeof(glm::vec3) + sizeof(glm::vec4)));
 		glEnableVertexAttribArray(2);
 
-		// Layout SSBOs (for now disabled as we use the SSBO as such)
+		//Layout SSBOs
 
-		//glBindBuffer(GL_ARRAY_BUFFER, g_angleBuffers[i]);
-		//glVertexAttribPointer(2, 4, GL_FLOAT, GL_FALSE, sizeof(BranchComputeData), (GLvoid*)0);
-		//glEnableVertexAttribArray(2);
+		glBindBuffer(GL_ARRAY_BUFFER, g_vertexBuffers[i]);
+
+		glVertexAttribPointer(3, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (GLvoid*)0);
+		glEnableVertexAttribArray(3);
+
+		glVertexAttribPointer(4, 4, GL_FLOAT, GL_FALSE, sizeof(Vertex), (GLvoid*)sizeof(glm::vec3));
+		glEnableVertexAttribArray(4);
+
+		glVertexAttribIPointer(5, 1, GL_UNSIGNED_INT, sizeof(Vertex), (GLvoid*)(sizeof(glm::vec3) + sizeof(glm::vec4)));
+		glEnableVertexAttribArray(5);
 	}
 	glBindVertexArray(0);
 }
@@ -181,9 +195,9 @@ int main(int argc, char** argv) {
 		computeShaderData.totalTime += (float)deltaTimeMs;
 
 		orientBranchesComputeShader.Activate();
-
-		glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, g_angleBuffers[frameIndex]);
-		glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 1, g_angleBuffers[frameIndex ^ 1]);
+		
+		glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, g_branchBuffers[frameIndex]);     // read
+		glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 1, g_branchBuffers[frameIndex ^ 1]); // write
 		glBindBufferBase(GL_UNIFORM_BUFFER, 2, g_computeShaderUBO);
 		glBufferSubData(GL_UNIFORM_BUFFER, 0, sizeof(ComputeShaderData), &computeShaderData);		
 		//glBindBuffer(GL_UNIFORM_BUFFER, 0);
@@ -198,9 +212,12 @@ int main(int argc, char** argv) {
 
 		glBindBufferBase(GL_UNIFORM_BUFFER, 1, g_computeShaderUBO);
 
-		glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, g_angleBuffers[frameIndex ^ 1]);
-		
+		glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, g_branchBuffers[frameIndex]);     // read
+		glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 1, g_vertexBuffers[frameIndex ^ 1]); // write
+
 		glDispatchCompute((tree.size() + 255) / 256, 1, 1);
+
+		glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
 
 		// Grtaphics Stage
 
@@ -213,7 +230,7 @@ int main(int argc, char** argv) {
 
 		vertFragShaders.Activate();
 		vertFragShaders.SetViewProjMatrices(viewProjUniform.view, viewProjUniform.proj);
-		glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 2, g_angleBuffers[frameIndex]);
+		//glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 2, g_branchBuffers[frameIndex]);
 		glBindVertexArray(g_vertexVAOs[frameIndex]);		
 		glLineWidth(1.0f);
 		glPointSize(9.0f);

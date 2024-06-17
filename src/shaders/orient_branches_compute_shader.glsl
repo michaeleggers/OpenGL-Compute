@@ -15,12 +15,12 @@ struct BranchComputeData {
    vec4 branchDir; // 48 bytes
 };
 
-layout(std140, binding = 0) readonly buffer ParticleSSBOIn {
-   BranchComputeData particlesIn[ ];
+layout(std140, binding = 0) readonly buffer BranchSSBOIn {
+   BranchComputeData branchesIn[ ];
 };
 
-layout(std140, binding = 1) buffer ParticleSSBOOut {
-   BranchComputeData particlesOut[ ];
+layout(std140, binding = 1) buffer BranchSSBOOut {
+   BranchComputeData branchesOut[ ];
 };
 
 layout(std140, binding = 2) uniform GlobalData {
@@ -67,21 +67,21 @@ void main() {
    uint index = gl_GlobalInvocationID.x;  
 
    if (index < numBranches) {
-      BranchComputeData particleIn = particlesIn[index];      
+      BranchComputeData branchIn = branchesIn[index];      
 
-      vec4 qRot = particleIn.orientation;
+      vec4 qRot = branchIn.orientation;
 
       float angle = sin(0.001f * totalTime);
       angle *= 20.0f;
       vec4 qRotAdd = quat_from_axis_angle(vec3(0.0f, 0.0f, 1.0f), angle);
 
-      vec4 branchDir = particleIn.branchDir;
+      vec4 branchDir = branchIn.branchDir;
       vec3 newBranchDir = rotate_vertex_position(branchDir.xyz, qRotAdd);
 
-      // particlesOut[index].rotationAxis = vec4(42.0f); // = particleIn;
-      particlesOut[index] = particleIn;
-      particlesOut[index].orientation = qRotAdd; //quat_mult(qRotAdd, qRot);
-      particlesOut[index].branchDir = vec4(newBranchDir, 1.0f);
+      // particlesOut[index].rotationAxis = vec4(42.0f); // = branchIn;
+      branchesOut[index] = branchIn;
+      branchesOut[index].orientation = qRotAdd; //quat_mult(qRotAdd, qRot);
+      branchesOut[index].branchDir = vec4(newBranchDir, 1.0f);
 
 
       // particlesOut[index].x += 0.01f * deltaTime;    

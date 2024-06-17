@@ -3,16 +3,22 @@
 struct BranchComputeData {
 	vec4 orientation; // 16 bytes
 	int  parentIndex;  // -1 = Root branch // 20 bytes
-   // vec3 padding; // 32 bytes
-   vec4 branchDir; // 48 bytes
+    // vec3 padding; // 32 bytes
+    vec4 branchDir; // 48 bytes
 };
 
-layout(std140, binding = 0) readonly buffer ParticleSSBOIn {
-   BranchComputeData particlesIn[ ];
+struct Vertex {
+	vec3 pos;
+	vec4 color;
+	uint branchIndex;
 };
 
-layout(std140, binding = 1) buffer ParticleSSBOOut {
-   BranchComputeData particlesOut[ ];
+layout(std140, binding = 0) readonly buffer BranchSSBOIn {
+   BranchComputeData branchesIn[ ];
+};
+
+layout(std140, binding = 1) buffer VertexSSBOOut {
+   Vertex verticesOut[ ];
 };
 
 layout(std140, binding = 1) uniform GlobalData {
