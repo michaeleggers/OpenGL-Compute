@@ -13,7 +13,7 @@ struct BranchComputeData {
 	int  parentIndex;  // -1 = Root branch // 20 bytes
    int  vertexIndexStart;
    int  vertexIndexEnd;
-   // int padding; 
+   int  depth;  // hierarchy in tree. 0 is root branch.
    vec4 branchDir; 
 };
 

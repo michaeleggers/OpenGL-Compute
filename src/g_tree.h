@@ -15,7 +15,7 @@ struct BranchComputeData {
 	int       parentIndex;  // -1 = Root branch
 	int       vertexIndexStart;
 	int		  vertexIndexEnd;
-	int       padding;  // unused
+	int		  depth;
 	glm::vec4 branchDir;
 };
 

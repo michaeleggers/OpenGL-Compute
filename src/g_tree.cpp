@@ -42,8 +42,10 @@ void AddBranchRec(Branch root, float angle, float branch_length, std::vector<Bra
 
 	branch_list.push_back(branch);
 
-	AddBranchRec(branch, angle, branch_length, branch_list, max_depth - 1, parentID + 1);	
-	AddBranchRec(branch, -angle, branch_length, branch_list, max_depth - 1, parentID + 1);
+	int newParentID = branch_list.size() - 1;
+
+	AddBranchRec(branch, angle, branch_length, branch_list, max_depth - 1, newParentID);	
+	AddBranchRec(branch, -angle, branch_length, branch_list, max_depth - 1, newParentID);
 }
 
 std::vector<Branch> CreateTree(glm::vec3 root_start, glm::vec3 root_end, float branch_angle, int max_depth) {	
