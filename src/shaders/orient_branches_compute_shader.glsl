@@ -73,9 +73,10 @@ void main() {
 
       vec4 qRot = branchIn.orientation;
 
-      float angle = sin(0.001f * totalTime);
+      float angle = 0.25 * sin(0.001f * totalTime);
       // angle *= 20.0f;
-      angle = 3.14f;
+      // angle = 3.14f;
+      // angle = 0.0f;      
       vec4 qRotAdd = quat_from_axis_angle(vec3(0.0f, 0.0f, 1.0f), angle);
 
       vec4 branchDir = branchIn.branchDir;

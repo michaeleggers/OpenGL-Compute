@@ -79,19 +79,22 @@ void main() {
         int parentIndex = branch.parentIndex;
         vec4 pos = -branch.branchDir;
 
-        // while (parentIndex >= 0) {
+        while (parentIndex >= 0) {
             
-        //     BranchComputeData parentBranch = branchesIn[parentIndex];
-        //     pos -= branch.branchDir;
+            BranchComputeData parentBranch = branchesIn[parentIndex];
+            pos -= parentBranch.branchDir;
 
-        //     parentIndex = parentBranch.parentIndex;            
-        // }
+            parentIndex = parentBranch.parentIndex;            
+        }
         
         pos *= -1.0f;
         vec4 posStart = pos - branch.branchDir;
         
-        verticesOut[branch.vertexIndexEnd].pos += branch.branchDir.xzy;
-        verticesOut[branch.vertexIndexEnd].color = vec4(1.0f, 1.0f, 1.0f, 1.0f);
+        // verticesOut[branch.vertexIndexEnd].pos += branch.branchDir.xzy;
+        // verticesOut[branch.vertexIndexEnd].color = vec4(1.0f, 1.0f, 1.0f, 1.0f);
+
+        verticesOut[branch.vertexIndexStart].pos = posStart.xyz;
+        verticesOut[branch.vertexIndexEnd].pos = pos.xyz;
 
         // verticesOut[branch.vertexIndexStart] = verticesIn[branch.vertexIndexStart];
         // verticesOut[branch.vertexIndexEnd] = verticesIn[branch.vertexIndexEnd];

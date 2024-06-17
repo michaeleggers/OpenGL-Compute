@@ -161,7 +161,7 @@ int main(int argc, char** argv) {
 
 	// Create geometry and upload to GPU
 
-	std::vector<Branch> tree = CreateTree(glm::vec3(0.0f), glm::vec3(0.0f, 20.0f, 0.0f), 20.0f, 2);	
+	std::vector<Branch> tree = CreateTree(glm::vec3(0.0f), glm::vec3(0.0f, 20.0f, 0.0f), 20.0f, 10);	
 	InitBuffers(tree);
 	
 	// View Projection Data
