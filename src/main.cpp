@@ -28,6 +28,7 @@ struct ComputeShaderData {
 	float deltaTime;
 	float totalTime;
 	int   numBranches;
+	int   maxDepth;
 };
 
 // Render Globals
@@ -161,9 +162,11 @@ int main(int argc, char** argv) {
 
 	// Create geometry and upload to GPU
 
-	std::vector<Branch> tree = CreateTree(glm::vec3(0.0f), glm::vec3(0.0f, 20.0f, 0.0f), 20.0f, 10);	
+	int treeDepth = 20;
+	std::vector<Branch> tree = CreateTree(glm::vec3(0.0f), glm::vec3(0.0f, 20.0f, 0.0f), 20.0f, treeDepth);	
 	InitBuffers(tree);
-	
+	printf("# Branches: %d\n# Vertices: %d\n", tree.size(), tree.size() * 2);
+
 	// View Projection Data
 	ViewProjectionMatrices viewProjUniform{};
 
@@ -172,12 +175,13 @@ int main(int argc, char** argv) {
 	computeShaderData.deltaTime = 0.001f;
 	computeShaderData.totalTime = 0.0f;
 	computeShaderData.numBranches = tree.size();
+	computeShaderData.maxDepth = treeDepth;
 
 	uint64_t frameIndex = 0;
 
 
 	// Toggle VSYNC
-	glfwSwapInterval(1);
+	glfwSwapInterval(0);
 
 	double deltaTimeMs = 0.0;
 	double totalTimeMs = 0.0;

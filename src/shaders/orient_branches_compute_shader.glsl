@@ -29,6 +29,7 @@ layout(std140, binding = 2) uniform GlobalData {
    float deltaTime;
    float totalTime;
    int   numBranches;
+   int   maxDepth;
 };
 
 layout (local_size_x = 256, local_size_y = 1, local_size_z = 1) in;
@@ -71,9 +72,13 @@ void main() {
    if (index < numBranches) {
       BranchComputeData branchIn = branchesIn[index];      
 
+      float depth = float(branchIn.depth);
+      float maxDepthF = float(maxDepth);
+      float influence = depth / maxDepthF;
+
       vec4 qRot = branchIn.orientation;
 
-      float angle = 0.25 * sin(0.001f * totalTime);
+      float angle = influence * 0.25 * sin(0.001f * totalTime);
       // angle *= 20.0f;
       // angle = 3.14f;
       // angle = 0.0f;      
