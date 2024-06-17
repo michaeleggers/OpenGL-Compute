@@ -9,15 +9,17 @@
 // See: https://www.khronos.org/opengl/wiki/Interface_Block_(GLSL)#:~:text=vec3%20at%20all.-,std430,-%3A%20This%20layout%20works
 
 struct BranchComputeData {
-	vec4 orientation;
-	int  parentIndex;  // -1 = Root branch
+	vec4 orientation; // 16 bytes
+	int  parentIndex;  // -1 = Root branch // 20 bytes
+   // vec3 padding; // 32 bytes
+   vec4 branchDir; // 48 bytes
 };
 
-layout(std430, binding = 0) readonly buffer ParticleSSBOIn {
+layout(std140, binding = 0) readonly buffer ParticleSSBOIn {
    BranchComputeData particlesIn[ ];
 };
 
-layout(std430, binding = 1) buffer ParticleSSBOOut {
+layout(std140, binding = 1) buffer ParticleSSBOOut {
    BranchComputeData particlesOut[ ];
 };
 
@@ -56,6 +58,11 @@ vec4 quat_mult(vec4 q1, vec4 q2) {
   return qr;
 }
 
+vec3 rotate_vertex_position(vec3 position, vec4 qRot) {   
+  vec3 v = position.xyz;
+  return v + 2.0 * cross(qRot.xyz, cross(qRot.xyz, v) + qRot.w * v);
+}
+
 void main() {
    uint index = gl_GlobalInvocationID.x;  
 
@@ -68,9 +75,14 @@ void main() {
       angle *= 20.0f;
       vec4 qRotAdd = quat_from_axis_angle(vec3(0.0f, 0.0f, 1.0f), angle);
 
+      vec4 branchDir = particleIn.branchDir;
+      vec3 newBranchDir = rotate_vertex_position(branchDir.xyz, qRotAdd);
+
       // particlesOut[index].rotationAxis = vec4(42.0f); // = particleIn;
       particlesOut[index] = particleIn;
       particlesOut[index].orientation = qRotAdd; //quat_mult(qRotAdd, qRot);
+      particlesOut[index].branchDir = vec4(newBranchDir, 1.0f);
+
 
       // particlesOut[index].x += 0.01f * deltaTime;    
          

@@ -14,6 +14,7 @@ struct BranchComputeData {
 	glm::vec4 orientation;
 	int       parentIndex;  // -1 = Root branch
 	glm::vec3 padding;
+	glm::vec4 branchDir;
 };
 
 struct Branch {
