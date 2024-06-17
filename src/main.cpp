@@ -61,12 +61,12 @@ void InitBuffers(std::vector<Branch>& branches) {
 	// Geometry Buffer
 
 	std::vector<Vertex> vertices{};
-	uint32_t branchIndex = 0;
+	//uint32_t branchIndex = 0;
 	for (Branch& branch : branches) {		
-		branch.end.branchIndex = branchIndex;
+		//branch.end.branchIndex = branchIndex;
 		vertices.push_back(branch.start);
 		vertices.push_back(branch.end);
-		branchIndex++;
+		//branchIndex++;
 	}
 
 	glGenBuffers(1, &g_vertexVBO);
@@ -104,31 +104,31 @@ void InitBuffers(std::vector<Branch>& branches) {
 	for (int i = 0; i < 2; i++) {
 		glBindVertexArray(g_vertexVAOs[i]);
 
-		glBindBuffer(GL_ARRAY_BUFFER, g_vertexVBO);
+		//glBindBuffer(GL_ARRAY_BUFFER, g_vertexVBO);
 
-		// Vertex Layout standard vertex geometry
+		//// Vertex Layout standard vertex geometry
 
-		glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (GLvoid*)0);
-		glEnableVertexAttribArray(0);
+		//glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (GLvoid*)0);
+		//glEnableVertexAttribArray(0);
 
-		glVertexAttribPointer(1, 4, GL_FLOAT, GL_FALSE, sizeof(Vertex), (GLvoid*)sizeof(glm::vec3));
-		glEnableVertexAttribArray(1);
+		//glVertexAttribPointer(1, 4, GL_FLOAT, GL_FALSE, sizeof(Vertex), (GLvoid*)sizeof(glm::vec3));
+		//glEnableVertexAttribArray(1);
 
-		glVertexAttribIPointer(2, 1, GL_UNSIGNED_INT, sizeof(Vertex), (GLvoid*)(sizeof(glm::vec3) + sizeof(glm::vec4)));
-		glEnableVertexAttribArray(2);
+		//glVertexAttribIPointer(2, 1, GL_INT, sizeof(Vertex), (GLvoid*)(sizeof(glm::vec3) + sizeof(glm::vec4)));
+		//glEnableVertexAttribArray(2);
 
 		//Layout SSBOs
 
 		glBindBuffer(GL_ARRAY_BUFFER, g_vertexBuffers[i]);
 
-		glVertexAttribPointer(3, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (GLvoid*)0);
-		glEnableVertexAttribArray(3);
+		glVertexAttribPointer(0, 4, GL_FLOAT, GL_FALSE, sizeof(Vertex), (GLvoid*)0);
+		glEnableVertexAttribArray(0);
 
-		glVertexAttribPointer(4, 4, GL_FLOAT, GL_FALSE, sizeof(Vertex), (GLvoid*)sizeof(glm::vec3));
-		glEnableVertexAttribArray(4);
+		glVertexAttribPointer(1, 4, GL_FLOAT, GL_FALSE, sizeof(Vertex), (GLvoid*)sizeof(glm::vec4));
+		glEnableVertexAttribArray(1);
 
-		glVertexAttribIPointer(5, 1, GL_UNSIGNED_INT, sizeof(Vertex), (GLvoid*)(sizeof(glm::vec3) + sizeof(glm::vec4)));
-		glEnableVertexAttribArray(5);
+		glVertexAttribIPointer(2, 1, GL_INT, sizeof(Vertex), (GLvoid*)(sizeof(glm::vec4) + sizeof(glm::vec4)));
+		glEnableVertexAttribArray(2);
 	}
 	glBindVertexArray(0);
 }
@@ -161,7 +161,7 @@ int main(int argc, char** argv) {
 
 	// Create geometry and upload to GPU
 
-	std::vector<Branch> tree = CreateTree(glm::vec3(0.0f), glm::vec3(0.0f, 20.0f, 0.0f), 20.0f, 10);	
+	std::vector<Branch> tree = CreateTree(glm::vec3(0.0f), glm::vec3(0.0f, 20.0f, 0.0f), 20.0f, 2);	
 	InitBuffers(tree);
 	
 	// View Projection Data
@@ -204,20 +204,22 @@ int main(int argc, char** argv) {
 
 		glDispatchCompute( (tree.size() + 255) / 256, 1, 1);		
 
-		glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
+		glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);		
 
 		// Second Compute Stage: Build new tree
 		
 		buildTreeComputeShader.Activate();
 
-		glBindBufferBase(GL_UNIFORM_BUFFER, 1, g_computeShaderUBO);
 
 		glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, g_branchBuffers[frameIndex]);     // read
-		glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 1, g_vertexBuffers[frameIndex ^ 1]); // write
+		glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 1, g_vertexBuffers[frameIndex]);		// read
+		glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 2, g_vertexBuffers[frameIndex ^ 1]); // write
+		glBindBufferBase(GL_UNIFORM_BUFFER, 3, g_computeShaderUBO);
 
-		glDispatchCompute((tree.size() + 255) / 256, 1, 1);
+		glDispatchCompute( (tree.size() + 255) / 256, 1, 1);
 
-		glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
+		glMemoryBarrier(GL_VERTEX_ATTRIB_ARRAY_BARRIER_BIT);
+		glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);		
 
 		// Grtaphics Stage
 

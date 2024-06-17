@@ -3,25 +3,30 @@
 struct BranchComputeData {
 	vec4 orientation; // 16 bytes
 	int  parentIndex;  // -1 = Root branch // 20 bytes
-    // vec3 padding; // 32 bytes
-    vec4 branchDir; // 48 bytes
+    int  vertexIndexStart;
+    int  vertexIndexEnd;
+    // int padding; 
+    vec4 branchDir; 
 };
 
 struct Vertex {
-	vec3 pos;
-	vec4 color;
-	uint branchIndex;
+	vec3 pos;    
+	vec4 color;	
 };
 
-layout(std140, binding = 0) readonly buffer BranchSSBOIn {
+layout (std140, binding = 0) readonly buffer BranchSSBOIn {
    BranchComputeData branchesIn[ ];
 };
 
-layout(std140, binding = 1) buffer VertexSSBOOut {
-   Vertex verticesOut[ ];
+layout (std140, binding = 1) readonly buffer VertexSSBOIn {
+    Vertex verticesIn[ ];
 };
 
-layout(std140, binding = 1) uniform GlobalData {
+layout (std140, binding = 2) buffer VertexSSBOOut {
+    Vertex verticesOut[ ];
+};
+
+layout(std140, binding = 3) uniform GlobalData {
    float deltaTime;
    float totalTime;
    int   numBranches;
@@ -64,9 +69,34 @@ vec3 rotate_vertex_position(vec3 position, vec4 qRot) {
 void main() {
    uint index = gl_GlobalInvocationID.x;  
 
-   if (index < numBranches) {
+   if (index < numBranches) { 
 
-        // particlesOut[index] = particleIn[index];         
+        BranchComputeData branch = branchesIn[index];
+
+        verticesOut[branch.vertexIndexStart] = verticesIn[branch.vertexIndexStart];
+        verticesOut[branch.vertexIndexEnd] = verticesIn[branch.vertexIndexEnd];
+
+        int parentIndex = branch.parentIndex;
+        vec4 pos = -branch.branchDir;
+
+        // while (parentIndex >= 0) {
+            
+        //     BranchComputeData parentBranch = branchesIn[parentIndex];
+        //     pos -= branch.branchDir;
+
+        //     parentIndex = parentBranch.parentIndex;            
+        // }
+        
+        pos *= -1.0f;
+        vec4 posStart = pos - branch.branchDir;
+        
+        verticesOut[branch.vertexIndexEnd].pos += branch.branchDir.xzy;
+        verticesOut[branch.vertexIndexEnd].color = vec4(1.0f, 1.0f, 1.0f, 1.0f);
+
+        // verticesOut[branch.vertexIndexStart] = verticesIn[branch.vertexIndexStart];
+        // verticesOut[branch.vertexIndexEnd] = verticesIn[branch.vertexIndexEnd];
+
+        // verticesOut[index] = verticesIn[index]; // passthrough        
    }
 
    // barrier();   

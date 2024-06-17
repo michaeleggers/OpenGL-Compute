@@ -22,8 +22,8 @@ struct RenderState {
 
 struct Vertex {
 	glm::vec3 pos;
+	float     padding;
 	glm::vec4 color;
-	uint32_t  branchIndex;
 };
 
 void GLFW_ErrorCallback(int error, const char* description);

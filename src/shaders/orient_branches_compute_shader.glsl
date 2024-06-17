@@ -11,8 +11,10 @@
 struct BranchComputeData {
 	vec4 orientation; // 16 bytes
 	int  parentIndex;  // -1 = Root branch // 20 bytes
-   // vec3 padding; // 32 bytes
-   vec4 branchDir; // 48 bytes
+   int  vertexIndexStart;
+   int  vertexIndexEnd;
+   // int padding; 
+   vec4 branchDir; 
 };
 
 layout(std140, binding = 0) readonly buffer BranchSSBOIn {
@@ -72,7 +74,8 @@ void main() {
       vec4 qRot = branchIn.orientation;
 
       float angle = sin(0.001f * totalTime);
-      angle *= 20.0f;
+      // angle *= 20.0f;
+      angle = 3.14f;
       vec4 qRotAdd = quat_from_axis_angle(vec3(0.0f, 0.0f, 1.0f), angle);
 
       vec4 branchDir = branchIn.branchDir;
