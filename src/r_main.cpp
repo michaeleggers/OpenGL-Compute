@@ -34,7 +34,7 @@ void r_Init()
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 6);
 	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 	glfwWindowHint(GLFW_DEPTH_BITS, 24);
-	g_RenderState.glfwWindow = glfwCreateWindow(g_RenderState.windowWidth, g_RenderState.windowHeight, "OpenGL Compute Shaders", NULL, NULL);
+	g_RenderState.glfwWindow = glfwCreateWindow(g_RenderState.windowWidth, g_RenderState.windowHeight, "Tree Test", NULL, NULL);
 	if (!g_RenderState.glfwWindow) {
 		printf("Could not create GLFW window.\n");
 		exit(-1);

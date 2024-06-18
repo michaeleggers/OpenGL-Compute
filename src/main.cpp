@@ -284,7 +284,10 @@ int main(int argc, char** argv) {
 		totalTimeMs += deltaTimeMs;
 
 		if (totalTimeMs > updateFreqMs) {
-			printf("delta time: %f\n", deltaTimeMs);
+			char windowTitleBuf[256] = { 0 };
+			float fps = 1000.0f / deltaTimeMs;
+			sprintf(windowTitleBuf, "Tree Test -- delta time: %f ms -- FPS: %f\n", deltaTimeMs, fps);
+			glfwSetWindowTitle(r_GetWindow(), windowTitleBuf);
 			totalTimeMs = 0.0;
 		}
 
