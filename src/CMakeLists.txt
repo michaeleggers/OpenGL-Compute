@@ -15,6 +15,27 @@ add_executable(ComputeShader
 	g_tree.cpp
 	utils.h
 	utils.cpp
+
+	# dependencies/imgui/imgui.h
+	# dependencies/imgui/imconfig.h
+	# dependencies/imgui/imgui_internal.h
+	# dependencies/imgui/imstb_rectpack.h
+	# dependencies/imgui/imstb_textedit.h
+	# dependencies/imgui/imstb_truetype.h
+
+	# dependencies/imgui/misc/cpp/imgui_stdlib.h
+	dependencies/imgui/misc/cpp/imgui_stdlib.cpp
+
+	dependencies/imgui/imgui.cpp
+	dependencies/imgui/imgui_draw.cpp
+	dependencies/imgui/imgui_tables.cpp
+	dependencies/imgui/imgui_widgets.cpp
+	dependencies/imgui/imgui_demo.cpp
+
+	dependencies/imgui/backends/imgui_impl_glfw.cpp
+	dependencies/imgui/backends/imgui_impl_opengl3.cpp
+
+
 	${CMAKE_CURRENT_SOURCE_DIR}/dependencies/glad/src/gl.c
 	# ${CMAKE_CURRENT_SOURCE_DIR}/dependencies/glad/KHR/khrplatform.h
 	# ${CMAKE_CURRENT_SOURCE_DIR}/dependencies/glad/glad/glad.h
@@ -25,6 +46,8 @@ target_include_directories(ComputeShader
     PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/dependencies
 	PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/dependencies/glad/include
 	${CMAKE_CURRENT_SOURCE_DIR}/dependencies/glm
+	${CMAKE_CURRENT_SOURCE_DIR}/dependencies/imgui
+
 )
 
 target_link_libraries(ComputeShader

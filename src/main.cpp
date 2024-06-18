@@ -13,6 +13,10 @@
 #include <glm/glm.hpp>
 #include <glm/ext.hpp>
 
+#include <imgui.h>
+#include <backends/imgui_impl_glfw.h>
+#include <backends/imgui_impl_opengl3.h>
+
 #include "platform.h"
 #include "r_main.h"
 #include "r_shader.h"
@@ -138,7 +142,21 @@ int main(int argc, char** argv) {
 
 	SetupDirectories(argc, argv);
 
+	// Renderer Init
+
 	r_Init();
+
+	// ImGUI Init
+
+	IMGUI_CHECKVERSION();
+	ImGui::CreateContext();
+	ImGuiIO& io = ImGui::GetIO();
+	io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;     // Enable Keyboard Controls
+	io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;      // Enable Gamepad Controls
+
+	// Setup Platform/Renderer backends
+	ImGui_ImplGlfw_InitForOpenGL(r_GetWindow(), true); // Second param install_callback=true will install GLFW callbacks and chain to existing ones.
+	ImGui_ImplOpenGL3_Init();
 
 	// Load shaders
 
@@ -227,9 +245,19 @@ int main(int argc, char** argv) {
 
 		// Grtaphics Stage
 
+		// Start new ImGUI window
+
+		{
+			ImGui_ImplOpenGL3_NewFrame();
+			ImGui_ImplGlfw_NewFrame();
+			ImGui::NewFrame();
+			ImGui::ShowDemoWindow(); // Show demo window! :)
+		}
+	
 		//glViewport(0, 0, r_WindowWidth(), r_WindowWidth());
 		glClearColor(0.3f, 0.2f, 0.7f, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
 
 		viewProjUniform.view = glm::lookAt(glm::vec3(0.0f, 60.0f, 70.0f), glm::vec3(0.0f, 50.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f));
 		viewProjUniform.proj = glm::perspective(glm::radians(70.0f), (float)r_WindowWidth() / (float)r_WindowHeight(), 1.0f, 1000.0f);
@@ -241,6 +269,13 @@ int main(int argc, char** argv) {
 		glLineWidth(1.0f);
 		glPointSize(9.0f);
 		glDrawArrays(GL_LINES, 0, 2*tree.size());
+
+		// Render ImGUI window
+
+		{
+			ImGui::Render();
+			ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());		
+		}
 
 		glfwSwapBuffers( r_GetWindow() );
 
