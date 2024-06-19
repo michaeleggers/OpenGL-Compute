@@ -43,15 +43,15 @@ static GLuint g_vertexBuffers[2];
 static GLuint g_vertexVBO;
 static GLuint g_computeShaderUBO;
 
-static void SetupDirectories(int argc, char** argv) {
+static void SetupDirectories(const char * assets, const char * shaders) {
 
 	std::string assets_dir = "../../assets";
 	std::string shaders_dir = "../../src/shaders";
-	if (argc > 1) {
-		assets_dir = argv[1];
+	if (assets) {
+		assets_dir = std::string(assets);
 	}
-	if (argc > 2) {
-		shaders_dir = argv[2];
+	if (shaders) {
+		shaders_dir = std::string(shaders);
 	}
 
 	init_directories(assets_dir.c_str(), shaders_dir.c_str());
@@ -140,7 +140,22 @@ void InitBuffers(std::vector<Branch>& branches) {
 
 int main(int argc, char** argv) {
 
-	SetupDirectories(argc, argv);
+	if (argc < 2) {
+		printf("Usage:\n");
+		printf("ComputeShader <rel-shaders-dir> <rel-assets-dir> <tree-depth>(optional, default: 10)\n\n");
+		exit(-1);
+	}
+
+	SetupDirectories(argv[1], argv[2]);
+
+	int treeDepth = 10;
+	if (argc > 3) {
+		treeDepth = atoi(argv[3]);
+	}
+	if (treeDepth < 0) {
+		printf("tree-depth must be at least 0.\n\n");
+		exit(-1);
+	}
 
 	// Renderer Init
 
@@ -180,7 +195,6 @@ int main(int argc, char** argv) {
 
 	// Create geometry and upload to GPU
 
-	int treeDepth = 21;
 	std::vector<Branch> tree = CreateTree(glm::vec3(0.0f), glm::vec3(0.0f, 20.0f, 0.0f), 20.0f, treeDepth);	
 	InitBuffers(tree);
 	printf("# Branches: %d\n# Vertices: %d\n", tree.size(), tree.size() * 2);
