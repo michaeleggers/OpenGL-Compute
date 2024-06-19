@@ -71,7 +71,7 @@ float compute_influence(float treeDepthPct) {
 }
 
 float compute_influence_smooth(float treeDepthPct) {
-   return 0.01f + 0.8f * ( 1.0f - exp( -pow(treeDepthPct, 2) ) );
+   return 0.05f + 0.8f * ( 1.0f - exp( -pow(treeDepthPct, 2) ) );
 }
 
 void main() {

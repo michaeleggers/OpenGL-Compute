@@ -27,6 +27,7 @@ struct Branch {
 
 std::vector<Branch> CreateTree(glm::vec3 root_start, glm::vec3 root_end, float branch_angle, int max_depth);
 void                AddBranchRec(Branch root, float angle, float branch_length, std::vector<Branch>& branch_list, int max_depth, int parentID, int current_depth);
+glm::vec4			CreateColorForDepthPct(float treeDepthPct);
 
 
 #endif

@@ -213,7 +213,7 @@ int main(int argc, char** argv) {
 
 
 	// Toggle VSYNC
-	glfwSwapInterval(0);
+	glfwSwapInterval(1);
 
 	double deltaTimeMs = 0.0;
 	double totalTimeMs = 0.0;
@@ -280,8 +280,8 @@ int main(int argc, char** argv) {
 		vertFragShaders.SetViewProjMatrices(viewProjUniform.view, viewProjUniform.proj);
 		//glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 2, g_branchBuffers[frameIndex]);
 		glBindVertexArray(g_vertexVAOs[frameIndex]);		
-		glLineWidth(1.0f);
-		glPointSize(9.0f);
+		glLineWidth(2.0f);
+		glPointSize(1.0f);
 		glDrawArrays(GL_LINES, 0, 2*tree.size());
 
 		// Render ImGUI window
