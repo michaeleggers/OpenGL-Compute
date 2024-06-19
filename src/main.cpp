@@ -180,7 +180,7 @@ int main(int argc, char** argv) {
 
 	// Create geometry and upload to GPU
 
-	int treeDepth = 20;
+	int treeDepth = 21;
 	std::vector<Branch> tree = CreateTree(glm::vec3(0.0f), glm::vec3(0.0f, 20.0f, 0.0f), 20.0f, treeDepth);	
 	InitBuffers(tree);
 	printf("# Branches: %d\n# Vertices: %d\n", tree.size(), tree.size() * 2);
@@ -218,8 +218,8 @@ int main(int argc, char** argv) {
 
 		orientBranchesComputeShader.Activate();
 		
-		glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, g_branchBuffers[frameIndex]);     // read
-		glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 1, g_branchBuffers[frameIndex ^ 1]); // write
+		glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, g_branchBuffers[0]);     // read
+		glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 1, g_branchBuffers[1]);     // write
 		glBindBufferBase(GL_UNIFORM_BUFFER, 2, g_computeShaderUBO);
 		glBufferSubData(GL_UNIFORM_BUFFER, 0, sizeof(ComputeShaderData), &computeShaderData);		
 		//glBindBuffer(GL_UNIFORM_BUFFER, 0);
@@ -233,7 +233,7 @@ int main(int argc, char** argv) {
 		buildTreeComputeShader.Activate();
 
 
-		glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, g_branchBuffers[frameIndex]);     // read
+		glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, g_branchBuffers[1]);     // read
 		glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 1, g_vertexBuffers[frameIndex]);		// read
 		glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 2, g_vertexBuffers[frameIndex ^ 1]); // write
 		glBindBufferBase(GL_UNIFORM_BUFFER, 3, g_computeShaderUBO);

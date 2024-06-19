@@ -66,6 +66,14 @@ vec3 rotate_vertex_position(vec3 position, vec4 qRot) {
   return v + 2.0 * cross(qRot.xyz, cross(qRot.xyz, v) + qRot.w * v);
 }
 
+float compute_influence(float treeDepthPct) {
+   return 1.0f - exp( -pow(treeDepthPct, 4) / (0.1f / exp(-treeDepthPct)) );
+}
+
+float compute_influence_smooth(float treeDepthPct) {
+   return 0.01f + 0.8f * ( 1.0f - exp( -pow(treeDepthPct, 2) ) );
+}
+
 void main() {
    uint index = gl_GlobalInvocationID.x;  
 
@@ -74,15 +82,17 @@ void main() {
 
       float depth = float(branchIn.depth);
       float maxDepthF = float(maxDepth);
-      float influence = depth / maxDepthF;
+      float treeDepthPct = depth / maxDepthF;
+      float influence = compute_influence_smooth(treeDepthPct);
 
       vec4 qRot = branchIn.orientation;
 
-      float angle = influence * 0.25 * sin(0.001f * totalTime);
+      float angle = 100.0f * influence * sin(0.0001f * deltaTime + 0.001f * totalTime);
       // angle *= 20.0f;
       // angle = 3.14f;
       // angle = 0.0f;      
-      vec4 qRotAdd = quat_from_axis_angle(vec3(0.0f, 0.0f, 1.0f), angle);
+      vec3 windDirectionPerp = vec3(0.0f, 0.0f, 1.0f);
+      vec4 qRotAdd = quat_from_axis_angle(windDirectionPerp, angle);
 
       vec4 branchDir = branchIn.branchDir;
       vec3 newBranchDir = rotate_vertex_position(branchDir.xyz, qRotAdd);
