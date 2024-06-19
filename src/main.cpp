@@ -29,10 +29,11 @@ struct ViewProjectionMatrices {
 
 
 struct ComputeShaderData {
-	float deltaTime;
-	float totalTime;
-	int   numBranches;
-	int   maxDepth;
+	float	  deltaTime;
+	float	  totalTime;
+	int		  numBranches;
+	int		  maxDepth;
+	glm::vec3 rotationAxis;
 };
 
 // Render Globals
@@ -208,6 +209,7 @@ int main(int argc, char** argv) {
 	computeShaderData.totalTime = 0.0f;
 	computeShaderData.numBranches = tree.size();
 	computeShaderData.maxDepth = treeDepth;
+	computeShaderData.rotationAxis = glm::vec3(0.0f, 0.0f, 1.0f);
 
 	uint64_t frameIndex = 0;
 
@@ -218,6 +220,7 @@ int main(int argc, char** argv) {
 	double deltaTimeMs = 0.0;
 	double totalTimeMs = 0.0;
 	double updateFreqMs = 1000.0;
+	glm::vec3 windDirection = glm::vec3(0.0f, 0.0f, 1.0f);
 	while (!glfwWindowShouldClose( r_GetWindow() )) {
 
 		double startTime = glfwGetTime();
@@ -265,7 +268,19 @@ int main(int argc, char** argv) {
 			ImGui_ImplOpenGL3_NewFrame();
 			ImGui_ImplGlfw_NewFrame();
 			ImGui::NewFrame();
-			ImGui::ShowDemoWindow(); // Show demo window! :)
+			//ImGui::ShowDemoWindow(); // Show demo window! :)
+
+			int numVertices = computeShaderData.numBranches * 2;
+			ImGui::Begin("Tree Test");
+			ImGui::Text("# Branches: %d", computeShaderData.numBranches);
+			ImGui::Text("# Vertices: %d (%f Mio)", numVertices, numVertices / 1000000.0f);
+			ImGui::Text("Frametime (ms): %f", deltaTimeMs);		
+			ImGui::DragFloat3("wind direction", &windDirection[0], 0.01f, -1.0f, 1.0f);
+			// We need to pass the vector that is perpendicular to the wind direction because, that is the rotation axis
+			glm::quat upOrientation = glm::angleAxis(90.0f, glm::vec3(0.0f, 1.0f, 0.0f));		
+			computeShaderData.rotationAxis = glm::rotate(upOrientation, windDirection);
+
+			ImGui::End();
 		}
 	
 		//glViewport(0, 0, r_WindowWidth(), r_WindowWidth());
@@ -280,7 +295,7 @@ int main(int argc, char** argv) {
 		vertFragShaders.SetViewProjMatrices(viewProjUniform.view, viewProjUniform.proj);
 		//glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 2, g_branchBuffers[frameIndex]);
 		glBindVertexArray(g_vertexVAOs[frameIndex]);		
-		glLineWidth(2.0f);
+		glLineWidth(3.0f);
 		glPointSize(1.0f);
 		glDrawArrays(GL_LINES, 0, 2*tree.size());
 

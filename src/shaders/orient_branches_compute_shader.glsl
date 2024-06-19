@@ -30,6 +30,7 @@ layout(std140, binding = 2) uniform GlobalData {
    float totalTime;
    int   numBranches;
    int   maxDepth;
+   vec3  rotationAxis;
 };
 
 layout (local_size_x = 256, local_size_y = 1, local_size_z = 1) in;
@@ -90,9 +91,8 @@ void main() {
       float angle = 100.0f * influence * sin(0.0001f * deltaTime + 0.001f * totalTime);
       // angle *= 20.0f;
       // angle = 3.14f;
-      // angle = 0.0f;      
-      vec3 windDirectionPerp = vec3(0.0f, 0.0f, 1.0f);
-      vec4 qRotAdd = quat_from_axis_angle(windDirectionPerp, angle);
+      // angle = 0.0f;            
+      vec4 qRotAdd = quat_from_axis_angle( normalize(rotationAxis), angle );
 
       vec4 branchDir = branchIn.branchDir;
       vec3 newBranchDir = rotate_vertex_position(branchDir.xyz, qRotAdd);
