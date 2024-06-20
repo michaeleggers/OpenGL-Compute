@@ -34,6 +34,8 @@ struct ComputeShaderData {
 	int		  numBranches;
 	int		  maxDepth;
 	glm::vec3 rotationAxis;
+	float     padding;  
+	glm::vec3 strength; // x = strength, y, z unused for now
 };
 
 // Render Globals
@@ -210,12 +212,13 @@ int main(int argc, char** argv) {
 	computeShaderData.numBranches = tree.size();
 	computeShaderData.maxDepth = treeDepth;
 	computeShaderData.rotationAxis = glm::vec3(0.0f, 0.0f, 1.0f);
+	computeShaderData.strength = glm::vec3(10.0f, 0.0f, 0.0f);
 
 	uint64_t frameIndex = 0;
 
 
 	// Toggle VSYNC
-	glfwSwapInterval(1);
+	glfwSwapInterval(0);
 
 	double deltaTimeMs = 0.0;
 	double totalTimeMs = 0.0;
@@ -276,6 +279,7 @@ int main(int argc, char** argv) {
 			ImGui::Text("# Vertices: %d (%f Mio)", numVertices, numVertices / 1000000.0f);
 			ImGui::Text("Frametime (ms): %f", deltaTimeMs);		
 			ImGui::DragFloat3("wind direction", &windDirection[0], 0.01f, -1.0f, 1.0f);
+			ImGui::DragFloat("Wind strength", &computeShaderData.strength.x, 1.0f, 0.0f, 2000.0f);
 			// We need to pass the vector that is perpendicular to the wind direction because, that is the rotation axis
 			glm::quat upOrientation = glm::angleAxis(90.0f, glm::vec3(0.0f, 1.0f, 0.0f));		
 			computeShaderData.rotationAxis = glm::rotate(upOrientation, windDirection);

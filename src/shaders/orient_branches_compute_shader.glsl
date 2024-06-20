@@ -31,6 +31,8 @@ layout(std140, binding = 2) uniform GlobalData {
    int   numBranches;
    int   maxDepth;
    vec3  rotationAxis;
+   // float padding;
+   vec3  strength;
 };
 
 layout (local_size_x = 256, local_size_y = 1, local_size_z = 1) in;
@@ -88,7 +90,7 @@ void main() {
 
       vec4 qRot = branchIn.orientation;
 
-      float angle = 100.0f * influence * sin(0.0001f * deltaTime + 0.001f * totalTime);
+      float angle = strength.x * influence * sin(0.0001f * deltaTime + 0.001f * totalTime);
       // angle *= 20.0f;
       // angle = 3.14f;
       // angle = 0.0f;            
