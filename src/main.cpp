@@ -281,7 +281,7 @@ int main(int argc, char** argv) {
 			ImGui::DragFloat3("wind direction", &windDirection[0], 0.01f, -1.0f, 1.0f);
 			ImGui::DragFloat("Wind strength", &computeShaderData.strength.x, 1.0f, 0.0f, 2000.0f);
 			// We need to pass the vector that is perpendicular to the wind direction because, that is the rotation axis
-			glm::quat upOrientation = glm::angleAxis(90.0f, glm::vec3(0.0f, 1.0f, 0.0f));		
+			glm::quat upOrientation = glm::angleAxis( glm::radians(90.0f), glm::vec3(0.0f, 1.0f, 0.0f));		
 			computeShaderData.rotationAxis = glm::rotate(upOrientation, windDirection);
 
 			ImGui::End();
