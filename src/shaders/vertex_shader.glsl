@@ -23,10 +23,12 @@ layout (std140, binding = 1) uniform Settings {
     uint someBits;
 };
 
-layout (location = 0) out vec4 out_color;
+layout (location = 0) out vec3 out_worldspace_pos;
+layout (location = 1) out vec4 out_color;
 
 void main () {
 
+    out_worldspace_pos = in_position_cs.xyz;
     out_color = in_color_cs;
 
     vec3 pos = in_position_cs.xyz;    
