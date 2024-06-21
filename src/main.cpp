@@ -43,7 +43,6 @@ struct ComputeShaderData {
 static GLuint g_vertexVAOs[2];
 static GLuint g_branchBuffers[2];
 static GLuint g_vertexBuffers[2];
-static GLuint g_vertexVBO;
 static GLuint g_computeShaderUBO;
 
 static void SetupDirectories(const char * assets, const char * shaders) {
@@ -69,19 +68,10 @@ void InitBuffers(std::vector<Branch>& branches) {
 	// Geometry Buffer
 
 	std::vector<Vertex> vertices{};
-	//uint32_t branchIndex = 0;
-	for (Branch& branch : branches) {		
-		//branch.end.branchIndex = branchIndex;
+	for (Branch& branch : branches) {				
 		vertices.push_back(branch.start);
 		vertices.push_back(branch.end);
-		//branchIndex++;
-	}
-
-	glGenBuffers(1, &g_vertexVBO);
-	glBindBuffer(GL_ARRAY_BUFFER, g_vertexVBO);
-	glBufferData(GL_ARRAY_BUFFER, 1.5 * 1024 * 1024 * 1024, NULL, GL_STATIC_DRAW);
-	glBufferSubData(GL_ARRAY_BUFFER, 0, vertices.size() * sizeof(Vertex), &vertices[0]);
-	glBindBuffer(GL_ARRAY_BUFFER, 0);
+	}	
 
 	// Create Shader Storage Buffers (SSBOs) that we read/write from/to
 
@@ -111,19 +101,6 @@ void InitBuffers(std::vector<Branch>& branches) {
 
 	for (int i = 0; i < 2; i++) {
 		glBindVertexArray(g_vertexVAOs[i]);
-
-		//glBindBuffer(GL_ARRAY_BUFFER, g_vertexVBO);
-
-		//// Vertex Layout standard vertex geometry
-
-		//glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (GLvoid*)0);
-		//glEnableVertexAttribArray(0);
-
-		//glVertexAttribPointer(1, 4, GL_FLOAT, GL_FALSE, sizeof(Vertex), (GLvoid*)sizeof(glm::vec3));
-		//glEnableVertexAttribArray(1);
-
-		//glVertexAttribIPointer(2, 1, GL_INT, sizeof(Vertex), (GLvoid*)(sizeof(glm::vec3) + sizeof(glm::vec4)));
-		//glEnableVertexAttribArray(2);
 
 		//Layout SSBOs
 
@@ -252,7 +229,6 @@ int main(int argc, char** argv) {
 		
 		buildTreeComputeShader.Activate();
 
-
 		glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, g_branchBuffers[1]);     // read
 		glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 1, g_vertexBuffers[frameIndex]);		// read
 		glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 2, g_vertexBuffers[frameIndex ^ 1]); // write
@@ -286,13 +262,11 @@ int main(int argc, char** argv) {
 
 			ImGui::End();
 		}
-	
-		//glViewport(0, 0, r_WindowWidth(), r_WindowWidth());
+			
 		glClearColor(0.3f, 0.2f, 0.7f, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-
-		viewProjUniform.view = glm::lookAt(glm::vec3(0.0f, 70.0f, 50.0f), glm::vec3(0.0f, 50.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f));
+		viewProjUniform.view = glm::lookAt(glm::vec3(0.0f, 70.0f, 70.0f), glm::vec3(0.0f, 30.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f));
 		viewProjUniform.proj = glm::perspective(glm::radians(70.0f), (float)r_WindowWidth() / (float)r_WindowHeight(), 1.0f, 1000.0f);
 
 		vertFragShaders.Activate();

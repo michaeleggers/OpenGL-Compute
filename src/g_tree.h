@@ -11,7 +11,6 @@
 #include <vector>
 
 struct BranchComputeData {
-	glm::vec4 orientation;
 	int       parentIndex;  // -1 = Root branch
 	int       vertexIndexStart;
 	int		  vertexIndexEnd;

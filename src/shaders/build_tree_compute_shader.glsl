@@ -1,12 +1,11 @@
 #version 460 core
 
 struct BranchComputeData {
-	vec4 orientation; // 16 bytes
 	int  parentIndex;  // -1 = Root branch // 20 bytes
-    int  vertexIndexStart;
-    int  vertexIndexEnd;
-    int  depth; 
-    vec4 branchDir; 
+  int  vertexIndexStart;
+  int  vertexIndexEnd;
+  int  depth; 
+  vec4 branchDir; 
 };
 
 struct Vertex {
@@ -91,20 +90,10 @@ void main() {
             parentIndex = parentBranch.parentIndex;            
         }
         
-        pos *= -1.0f;
-        vec4 posStart = pos - branch.branchDir;
+        pos *= -1.0f; // Invert the direction of the branch so it points from root to the new vertex-end position
+        vec4 posStart = pos - branch.branchDir; // Go back this branch to get the start of this branch
         
-        // verticesOut[branch.vertexIndexEnd].pos += branch.branchDir.xzy;
-        // verticesOut[branch.vertexIndexEnd].color = vec4(1.0f, 1.0f, 1.0f, 1.0f);
-
         verticesOut[branch.vertexIndexStart].pos = posStart.xyz;
-        verticesOut[branch.vertexIndexEnd].pos = pos.xyz;
-
-        // verticesOut[branch.vertexIndexStart] = verticesIn[branch.vertexIndexStart];
-        // verticesOut[branch.vertexIndexEnd] = verticesIn[branch.vertexIndexEnd];
-
-        // verticesOut[index] = verticesIn[index]; // passthrough        
+        verticesOut[branch.vertexIndexEnd].pos = pos.xyz;      
    }
-
-   // barrier();   
 }
