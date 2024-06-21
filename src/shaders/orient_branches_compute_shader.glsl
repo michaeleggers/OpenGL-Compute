@@ -36,6 +36,8 @@ layout(std140, binding = 2) uniform GlobalData {
 
 layout (local_size_x = 256, local_size_y = 1, local_size_z = 1) in;
 
+// The following quaternion functions are taken from:
+// https://www.geeks3d.com/20141201/how-to-rotate-a-vertex-by-a-quaternion-in-glsl/
 vec4 quat_from_axis_angle(vec3 axis, float angle) { 
   vec4 qr;
   
@@ -57,8 +59,18 @@ float compute_influence(float treeDepthPct) {
    return 1.0f - exp( -pow(treeDepthPct, 4) / (0.1f / exp(-treeDepthPct)) );
 }
 
-float compute_influence_smooth(float treeDepthPct) {
-   return 0.05f + 0.8f * ( 1.0f - exp( -pow(treeDepthPct, 2) ) );
+// b = vertical shift
+float compute_influence_smooth(float b, float treeDepthPct) {
+   return b + 0.8f * ( 1.0f - exp( -pow(treeDepthPct, 2) ) );
+}
+
+float compute_influence_steep(float k, float treeDepthPct) {
+   float b = 0.0f; // vertical shift
+   return b + ( (1.0f - b) / (1.0f - exp(-k)) ) * ( 1.0 - exp(-k*pow(treeDepthPct, 2)) );
+}
+
+float compute_influence_sigmoid(float b, float k, float treeDepthPct) {
+   return b + (1.0f - b) * ( 1 / ( 1+exp(-k*(treeDepthPct-1.0f)) ) );
 }
 
 void main() {
@@ -70,7 +82,9 @@ void main() {
       float depth = float(branchIn.depth);
       float maxDepthF = float(maxDepth);
       float treeDepthPct = depth / maxDepthF;
-      float influence = compute_influence_smooth(treeDepthPct);      
+      // float influence = compute_influence_steep(2.7f, treeDepthPct); 
+      // influence = compute_influence_sigmoid(0.0f, 5.0f, treeDepthPct);     
+      float influence = compute_influence_smooth(0.05f, treeDepthPct);      
 
       float angle = strength.x * influence * sin(0.0001f * deltaTime + 0.001f * totalTime);
       vec4 qRotAdd = quat_from_axis_angle( normalize(rotationAxis), angle );
@@ -81,5 +95,4 @@ void main() {
       branchesOut[index] = branchIn;      
       branchesOut[index].branchDir = vec4(newBranchDir, 1.0f);         
    }
-
 }

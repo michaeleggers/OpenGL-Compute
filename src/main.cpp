@@ -229,15 +229,12 @@ int main(int argc, char** argv) {
 		
 		buildTreeComputeShader.Activate();
 
-		glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, g_branchBuffers[1]);     // read
-		glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 1, g_vertexBuffers[frameIndex]);		// read
-		glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 2, g_vertexBuffers[frameIndex ^ 1]); // write
+		glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, g_branchBuffers[1]);				// read
+		glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 1, g_vertexBuffers[frameIndex]);		// read/write
+		glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 2, g_vertexBuffers[frameIndex ^ 1]); // write/read
 		glBindBufferBase(GL_UNIFORM_BUFFER, 3, g_computeShaderUBO);
 
 		glDispatchCompute( (tree.size() + 255) / 256, 1, 1);
-
-		glMemoryBarrier(GL_VERTEX_ATTRIB_ARRAY_BARRIER_BIT);
-		glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);		
 
 		// Grtaphics Stage
 

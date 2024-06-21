@@ -1,7 +1,7 @@
 #version 460 core
 
 struct BranchComputeData {
-	int  parentIndex;  // -1 = Root branch // 20 bytes
+	int  parentIndex;  // -1 = Root branch
   int  vertexIndexStart;
   int  vertexIndexEnd;
   int  depth; 
