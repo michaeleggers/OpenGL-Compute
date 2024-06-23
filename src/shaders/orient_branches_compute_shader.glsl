@@ -84,7 +84,7 @@ void main() {
       float treeDepthPct = depth / maxDepthF;
       // float influence = compute_influence_steep(2.7f, treeDepthPct); 
       // influence = compute_influence_sigmoid(0.0f, 5.0f, treeDepthPct);     
-      float influence = compute_influence_smooth(0.05f, treeDepthPct);      
+      float influence = compute_influence_smooth(0.02f, treeDepthPct);      
 
       float angle = strength.x * influence * sin(0.0001f * deltaTime + 0.001f * totalTime);
       vec4 qRotAdd = quat_from_axis_angle( normalize(rotationAxis), angle );
