@@ -59,13 +59,46 @@ static void SetupDirectories(const char * assets, const char * shaders) {
 	init_directories(assets_dir.c_str(), shaders_dir.c_str());
 }
 
-void InitBuffers(std::vector<Branch>& branches) {
+void CleanupBuffers() {
+	// Delete previously created buffers
+	glDeleteVertexArrays(2, g_vertexVAOs);
+	glDeleteBuffers(2, g_branchBuffers);
+	glDeleteBuffers(2, g_vertexBuffers);
+	glDeleteBuffers(1, &g_computeShaderUBO);
 
+	// Make sure they are uninitialized. So OpenGL will tell you
+	// if you try to bind them.
+
+	g_vertexVAOs[0] = 0;
+	g_vertexVAOs[1] = 0;
+
+	g_branchBuffers[0] = 0;
+	g_branchBuffers[1] = 0;
+
+	g_vertexBuffers[0] = 0;
+	g_vertexBuffers[1] = 0;
+
+	g_computeShaderUBO = 0;
+}
+
+void GenerateGlBuffers() {
 	// Create the VAO
 
 	glGenVertexArrays(2, g_vertexVAOs);
 
-	// Geometry Buffer
+	// SSBOs
+
+	glGenBuffers(2, g_branchBuffers);
+	glGenBuffers(2, g_vertexBuffers);
+
+	// Uniform Buffer
+
+	glGenBuffers(1, &g_computeShaderUBO);
+}
+
+void InitBuffers(std::vector<Branch>& branches) {
+
+	// Separate vertices from branches
 
 	std::vector<Vertex> vertices{};
 	for (Branch& branch : branches) {				
@@ -73,28 +106,27 @@ void InitBuffers(std::vector<Branch>& branches) {
 		vertices.push_back(branch.end);
 	}	
 
-	// Create Shader Storage Buffers (SSBOs) that we read/write from/to
+	// Fill Shader Storage Buffers (SSBOs) that we read/write from/to
 
 	std::vector<BranchComputeData> computeData{};
 	for (Branch& branch : branches) {
 		computeData.push_back(branch.computeData);		
 	}
 
-	glGenBuffers(2, g_branchBuffers);
 	glBindBuffer(GL_SHADER_STORAGE_BUFFER, g_branchBuffers[0]);
 	glBufferData(GL_SHADER_STORAGE_BUFFER, computeData.size() * sizeof(BranchComputeData), &computeData[0], GL_DYNAMIC_COPY);
 	glBindBuffer(GL_SHADER_STORAGE_BUFFER, g_branchBuffers[1]);
 	glBufferData(GL_SHADER_STORAGE_BUFFER, computeData.size() * sizeof(BranchComputeData), &computeData[0], GL_DYNAMIC_COPY);
 
-	glGenBuffers(2, g_vertexBuffers);
 	glBindBuffer(GL_SHADER_STORAGE_BUFFER, g_vertexBuffers[0]);
 	glBufferData(GL_SHADER_STORAGE_BUFFER, vertices.size() * sizeof(Vertex), &vertices[0], GL_DYNAMIC_COPY);
 	glBindBuffer(GL_SHADER_STORAGE_BUFFER, g_vertexBuffers[1]);
 	glBufferData(GL_SHADER_STORAGE_BUFFER, vertices.size() * sizeof(Vertex), &vertices[0], GL_DYNAMIC_COPY);
 
+	glBindBuffer(GL_SHADER_STORAGE_BUFFER, 0);
+
 	// Create Uniform Buffer for Compute Shader
 
-	glGenBuffers(1, &g_computeShaderUBO);
 	glBindBuffer(GL_UNIFORM_BUFFER, g_computeShaderUBO);
 	glBufferData(GL_UNIFORM_BUFFER, sizeof(ComputeShaderData), NULL, GL_DYNAMIC_DRAW);
 	glBindBuffer(GL_UNIFORM_BUFFER, 0);
@@ -115,7 +147,17 @@ void InitBuffers(std::vector<Branch>& branches) {
 		glVertexAttribIPointer(2, 1, GL_INT, sizeof(Vertex), (GLvoid*)(sizeof(glm::vec4) + sizeof(glm::vec4)));
 		glEnableVertexAttribArray(2);
 	}
+
+	glBindBuffer(GL_ARRAY_BUFFER, 0);
+
 	glBindVertexArray(0);
+}
+
+std::vector<Branch> RecreateTree(int depth) {
+	std::vector<Branch> tree = CreateTree(glm::vec3(0.0f), glm::vec3(0.0f, 20.0f, 0.0f), 20.0f, depth);	
+	printf("# Branches: %d\n# Vertices: %d\n", tree.size(), tree.size() * 2);
+
+	return tree;
 }
 
 int main(int argc, char** argv) {
@@ -173,11 +215,14 @@ int main(int argc, char** argv) {
 		exit(-1);
 	}
 
+	// Create OpenGL VAOs, SSBOs and UBO
+
+	GenerateGlBuffers();
+
 	// Create geometry and upload to GPU
 
-	std::vector<Branch> tree = CreateTree(glm::vec3(0.0f), glm::vec3(0.0f, 20.0f, 0.0f), 20.0f, treeDepth);	
+	std::vector<Branch> tree = RecreateTree(treeDepth);
 	InitBuffers(tree);
-	printf("# Branches: %d\n# Vertices: %d\n", tree.size(), tree.size() * 2);
 
 	// View Projection Data
 	ViewProjectionMatrices viewProjUniform{};
@@ -236,7 +281,7 @@ int main(int argc, char** argv) {
 
 		glDispatchCompute( (tree.size() + 255) / 256, 1, 1);
 
-		// Grtaphics Stage
+		// Graphics Stage
 
 		// Start new ImGUI window
 
@@ -248,6 +293,17 @@ int main(int argc, char** argv) {
 
 			int numVertices = computeShaderData.numBranches * 2;
 			ImGui::Begin("Tree Test");
+			ImGui::Text("Create new tree");
+			ImGui::DragInt("Recursion Depth", &treeDepth, 0.05F, 0, 25);			
+			if (ImGui::Button("RECREATE TREE")) {
+				CleanupBuffers();
+				GenerateGlBuffers();
+				tree = RecreateTree(treeDepth);
+				InitBuffers(tree);
+				computeShaderData.maxDepth = treeDepth;
+				computeShaderData.numBranches = tree.size();
+			}
+			ImGui::Separator();
 			ImGui::Text("# Branches: %d", computeShaderData.numBranches);
 			ImGui::Text("# Vertices: %d (%f Mio)", numVertices, numVertices / 1000000.0f);
 			ImGui::Text("Frametime (ms): %f", deltaTimeMs);		

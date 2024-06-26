@@ -87,10 +87,10 @@ void main() {
       float influence = compute_influence_smooth(0.02f, treeDepthPct);      
 
       float angle = strength.x * influence * sin(0.0001f * deltaTime + 0.001f * totalTime);
-      vec4 qRotAdd = quat_from_axis_angle( normalize(rotationAxis), angle );
+      vec4 qRot = quat_from_axis_angle( normalize(rotationAxis), angle );
 
       vec4 branchDir = branchIn.branchDir;
-      vec3 newBranchDir = rotate_vertex_position(branchDir.xyz, qRotAdd);
+      vec3 newBranchDir = rotate_vertex_position(branchDir.xyz, qRot);
       
       branchesOut[index] = branchIn;      
       branchesOut[index].branchDir = vec4(newBranchDir, 1.0f);         

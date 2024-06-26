@@ -76,6 +76,9 @@ std::vector<Branch> CreateTree(glm::vec3 root_start, glm::vec3 root_end, float b
 	AddBranchRec(root, 30.0f, branch_length, branch_list, max_depth, 0, 1);
 	AddBranchRec(root, 35.0f, branch_length, branch_list, max_depth, 0, 1);
 
+	// Reset the UID generator. Important if a new tree shall be created!
+	g_VerticesGenerated = 0;
+
 	return branch_list;
 }
 
