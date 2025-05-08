@@ -42,6 +42,12 @@ add_executable(ComputeShader
 	${CMAKE_CURRENT_SOURCE_DIR}/dependencies/stb/stb_image.h
 )
 	
+if(MSVC)
+    target_compile_options(ComputeShader PRIVATE /W4)
+else()
+    target_compile_options(ComputeShader PRIVATE -Wall -Wextra -Wpedantic)
+endif()
+
 target_include_directories(ComputeShader
     PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/dependencies
 	PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/dependencies/glad/include
