@@ -1,3 +1,6 @@
+#define TAIWAN_SHIELD_IMPLEMENTATION
+#include "taiwan.h"
+
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -48,7 +51,6 @@ static GLuint g_computeShaderUBO;
 
 static void SetupDirectories(const char* assets, const char* shaders)
 {
-
     std::string assets_dir  = "../../assets";
     std::string shaders_dir = "../../src/shaders";
     if ( assets )
@@ -180,6 +182,7 @@ int main(int argc, char** argv)
     {
         printf("Usage:\n");
         printf("ComputeShader <rel-shaders-dir> <rel-assets-dir> <tree-depth>(optional, default: 10)\n\n");
+        tw_PrintShield();
         exit(-1);
     }
 
