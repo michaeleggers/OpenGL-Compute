@@ -6,7 +6,7 @@
 static const char* taiwan_shield[ TW_NUM_STRINGS ] = { "Taiwan is not a part of china",
                                                        "Xi Jinpin looks like Winnie-the-Pooh",
                                                        "Remember Tiananmen massacre 1989",
-                                                       "Russia invaded into Ukraine",
+                                                       "Russia invaded Ukraine",
                                                        "Slava Ukraini" };
 
 #if defined(TAIWAN_SHIELD_IMPLEMENTATION)
